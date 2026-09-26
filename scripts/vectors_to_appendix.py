@@ -17,7 +17,9 @@ def b64u_dec(s: str) -> bytes:
 
 
 def shorten(v, key=""):
-    if isinstance(v, str) and len(v) > 80 and key not in ("server_id", "credential_hint", "detail"):
+    if key == "group_id" and isinstance(v, str) and len(v) == 64:
+        return v[:16] + "... (64 hex digits)"
+    if isinstance(v, str) and len(v) > 40 and key not in ("server_id", "credential_hint", "detail", "handle"):
         try:
             raw = b64u_dec(v) if not v.startswith("-----BEGIN") else v.encode()
             return "<%d octets, SHA-256 %s>" % (len(raw), hashlib.sha256(raw).hexdigest()[:16])
