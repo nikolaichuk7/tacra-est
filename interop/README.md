@@ -16,8 +16,9 @@ The happy path matches this specification and ours: `attest-initiate` returns a 
 Handle with `expires_in` 300 s; the Attester embeds it in Evidence (they use an EAT COSE_Sign1,
 RFC 9711, where we use a JSON mock, so the encodings differ but the shape is the same); the
 Credential Authority verifies proof of possession and issues; a replayed Handle is refused. The
-retrieval bundle already carries `server_id` and the Handle in its associated data, as our
-Attester-side checks expect. `attest-initiate` takes the Target and the Credential Type as the
+retrieval bundle already carries a `server_id` and the Handle in its associated data, as our
+Attester-side checks expect (this profile's `rrp_id`, so named since the review of 26 September,
+because what it identifies is the Relying Party, not the EST Server). `attest-initiate` takes the Target and the Credential Type as the
 query parameters `target` and `credential_type` (`common.go`, lines 43-44), and the mock CA chooses
 the mode, enrollment or retrieval, from a per-Target policy (`TargetPolicy` with a name, a mechanism and credential
 types, `internal/mockca/attest.go`); the pull request's text and our server do the same.
@@ -27,9 +28,10 @@ types, `internal/mockca/attest.go`); the pull request's text and our server do t
 - **T2, the CSR is not bound to Evidence.** The `csr-hash` binding method is declared and its
   presence is required, but `CSRHash()` is never called on the verify path and the mock EAT omits
   the CSR by design (`attest.go` line 190). A conduit that swaps the CSR after Evidence is
-  produced still obtains a certificate for the swapped key. This is the server/CSR-substitution
-  gap; the pull request closes it by putting the Handle, `server_id`, the Target and the CSR in
-  one binding input that the Credential Authority recomputes.
+  produced still obtains a certificate for the swapped key. This is the CSR-substitution gap; the
+  pull request closes it by putting the freshness element, the RRP identifier (`rrp_id`, formerly
+  `server_id`), the Target and the CSR in one binding input that the Credential Authority
+  recomputes.
 
 - **T3, the bundle authenticates the key holder, not the sender.** `SealCredentialBundle` needs
   only CEKpub, which travels in the request through the untrusted conduit; `Open` checks the AEAD

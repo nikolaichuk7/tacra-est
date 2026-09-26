@@ -4,15 +4,17 @@ Companion to the pull request against `TheBankster/lamps-tacra-est` (26 Septembe
 Everything here is reproducible from a clone; every number in the draft text that comes from this
 repository names the file it comes from, and `docs/RESULTS.md` collects them.
 
-- `formal/` — the EST profile in the applied pi calculus for ProVerif, fifteen models: the three
-  attacks the -00 text admits (server substitution and Target substitution by the conduit; bundle
-  substitution), the proofs with the bindings of the pull request in place, the same proofs with a
-  dishonest second server or Vault, a leaked TEE key as the explicit assumption, and six models on
-  where the bound server identity comes from (the Attester's configuration or the initiation
-  response) with a fresh Handle or a shared epoch.
+- `formal/` — the EST profile in the applied pi calculus for ProVerif, twenty-four models: the
+  three attacks the -00 text admits (RRP substitution and Target substitution by the conduit;
+  bundle substitution), the proofs with the bindings of the pull request in place, the same proofs
+  with a dishonest second server or Vault, a leaked TEE key as the explicit assumption, and fifteen
+  models on where the bound RRP identity comes from (the Attester's configuration or the initiation
+  response) under five sources of freshness: a fresh Handle, a shared epoch, a received epoch, a
+  Verifier's Handle that several servers accept, and the Attester's timestamp.
 - `impl/` — the reference implementation: Attester (in a SEV-SNP guest, or a mock TEE), EST Client
-  (conduit), EST Server with the three resources, Verifier, Credential Authority, Secret Vault; and
-  the drills that run each attack against the pull request's text and against -00.
+  (conduit), EST Server with the three resources, Verifier, Credential Authority, Secret Vault; all
+  five Freshness Kinds; and the drills that run each attack against the pull request's text and
+  against -00.
 - `cddl/` — the CDDL of the envelopes, identical to the draft's.
 - `scripts/` — the Google Cloud runner, and the scripts that turn a run into tables, the test
   vector, the example appendix and the CDDL check.

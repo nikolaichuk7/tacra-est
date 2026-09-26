@@ -1,7 +1,7 @@
 attestation-initiation-response = {
   freshness_kind: freshness-kind,
   ? handle: bstr,              ; present-* only: the Freshness Handle
-  rrp_id: tstr,                ; the RRP that will rely on the Evidence
+  rrp_id: tstr,                ; the RRP relying on the Evidence
   ? expires_in: uint,          ; present-* only
   ? max_age: uint,             ; absent-timestamp only
   mode: "enroll" / "retrieve",

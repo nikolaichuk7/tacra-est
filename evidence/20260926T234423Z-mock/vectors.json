@@ -1,0 +1,126 @@
+{
+ "code_rev": "e116768fe989",
+ "enrollment": {
+  "AttestationInitiationResponse": {
+   "acceptable_csk": [
+    "ecdsa-p256-sha256"
+   ],
+   "acceptable_evidence": [
+    "urn:tacra-est:evidence:sev-snp-json:1",
+    "urn:tacra-est:evidence:mock-json:1"
+   ],
+   "expires_in": 300,
+   "freshness_kind": "present-nonce",
+   "handle": "OjXME25r4_5JPx3CfdVIzWa7tt_GsEAe1dwbPGcACtw",
+   "mode": "enroll",
+   "rrp_id": "https://ca1.tacra.example"
+  },
+  "AttestedEnrollmentRequest": {
+   "binding": {
+    "hash": "sha512",
+    "method": "binding-input"
+   },
+   "credential_hint": "workload.tacra.example",
+   "credential_type": "x509",
+   "csr": "MIHbMIGDAgEAMCExHzAdBgNVBAMMFndvcmtsb2FkLnRhY3JhLmV4YW1wbGUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQs3yleO2DcdauMe_D8KPqMch9C_Zbgq_Hv8TQy1wc5pXq17QNovzBM-5CfrudEc6HqbKAbzhmCp4azzpPX4vTgoAAwCgYIKoZIzj0EAwIDRwAwRAIgPduF_72UNExX2aLo-yT4a6kttpZTEdYBDmaZzmZGS60CIH0-QMFucUeYwDLvh__Bs_czj5NCp1-oZfI9ockPn87L",
+   "evidence": "eyJwbGF0Zm9ybV9mb3JtIjoiZGlyZWN0IiwicHViIjoiLS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1Ga3dFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVZHMVdjL3dyWm1VNVdpeW5jRytJck80Q3h4N1BcbmtkQzMzL1JWT0pkbmF5UnRPcnRTTGEyTUx3R0FQNHRTazJjcU1RQXM0UWxleVZBbUVWeTBaS3doS1E9PVxuLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tXG4iLCJyZXBvcnQiOiJleUpqYUdsd1gybGtJam9pTURBd01UQXlNRE13TkRBMU1EWXdOekE0TURrd1lUQmlNR013WkRCbE1HWXhNREV4TVRJeE16RTBNVFV4TmpFM01UZ3hPVEZoTVdJeFl6RmtNV1V4WmpJd01qRXlNakl6TWpReU5USTJNamN5T0RJNU1tRXlZakpqTW1ReVpUSm1NekF6TVRNeU16TXpORE0xTXpZek56TTRNemt6WVROaU0yTXpaRE5sTTJZaUxDSmpiM1Z1ZEdWeUlqb3hMQ0p0WldGemRYSmxiV1Z1ZENJNklqWmtObVkyTXpaaU1tUTJaRFkxTmpFM016YzFOekkyTlRaa05qVTJaVGMwTm1RMlpqWXpObUl5WkRaa05qVTJNVGN6TnpVM01qWTFObVEyTlRabE56UTJaRFptTmpNMllqSmtObVEyTlRZeE56TTNOVGN5TmpVMlpEWTFObVUzTkNJc0luSmxjRzl5ZEY5a1lYUmhJam9pTldOaU5qWTFORGc1TWpCa01tSm1ZemN4T0RJeU1EUTFaREEwWm1VNE0ySmlNV0l4T1Rnd05tWTVOak14TjJSak9EazBPR0ZtTlRKak5tTmhZbUkwT1RRNVptTmlaVEZtTTJKaE5XWTVZemMwTlRsalptSXdOR0UyTWpNME16TTJObUZqTXpOaVpqSmhZMlJqWWpOalptSTFPVEF5TURGbU5HRmtOVGt5WkRFaUxDSnlaWEJ2Y25SZmFXUWlPaUl3WTJFNE1UVTNOREl5TldReFlUUTNZemMxTTJZME9ESmtNakUzTnpFNFpHWmpOVFZoTmpaaE5URTRaamd5TVdaallqUmlZekF3WWpRek1EVXlaRE5sSWl3aWRtVnljMmx2YmlJNkltMXZZMnN0TVNKOSIsInNpZyI6Ik1FUUNJRnZuMkZDcnFMN0Q1UmxyMjFfa3NOckpqRlJBMkEyWTAyV1FjVnRQWExkdkFpQWw4QWdXRXB3UmRCZFpqZksxZUpDRGRVQWY0d3VmQmJyOVZZUnBSYmN1MFEiLCJ0eXBlIjoibW9jayJ9",
+   "freshness_kind": "present-nonce",
+   "handle": "OjXME25r4_5JPx3CfdVIzWa7tt_GsEAe1dwbPGcACtw",
+   "profile": "urn:tacra-est:evidence:mock-json:1",
+   "target": "https://db.tacra.example"
+  },
+  "attest_initiate_query": {
+   "credential_type": "x509",
+   "target": "https://db.tacra.example"
+  },
+  "response_pkcs7_base64": "MIIC1AYJKoZIhvcNAQcCoIICxTCCAsECAQExADALBgkqhkiG9w0BBwGgggKpMIICpTCCAkqgAwIBAgIUH3abQvBpf4aY3ooFaNx65HRwje4wCgYIKoZIzj0EAwIwIDEeMBwGA1UEAwwVVEFDUkEgcmVmZXJlbmNlIENBIFMxMB4XDTI2MDkyNjIzMzkyM1oXDTI2MDkyNzIzNDQyM1owITEfMB0GA1UEAwwWd29ya2xvYWQudGFjcmEuZXhhbXBsZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCzfKV47YNx1q4x78Pwo+oxyH0L9luCr8e/xNDLXBzmlerXtA2i/MEz7kJ+u50RzoepsoBvOGYKnhrPOk9fi9OCjggFfMIIBWzAhBgNVHREEGjAYghZ3b3JrbG9hZC50YWNyYS5leGFtcGxlMBMGA1UdJQQMMAoGCCsGAQUFBwMCMIIBHwYJKwYBBAGB/VkBBIIBEHsibWVhc3VyZW1lbnQiOiI2ZDZmNjM2YjJkNmQ2NTYxNzM3NTcyNjU2ZDY1NmU3NDZkNmY2MzZiMmQ2ZDY1NjE3Mzc1NzI2NTZkNjU2ZTc0NmQ2ZjYzNmIyZDZkNjU2MTczNzU3MjY1NmQ2NTZlNzQiLCJwbGF0Zm9ybSI6Im1vY2siLCJwbGF0Zm9ybV9mb3JtIjoiZGlyZWN0IiwicmVwb3J0X2lkIjoiMGNhODE1NzQyMjVkMWE0N2M3NTNmNDgyZDIxNzcxOGRmYzU1YTY2YTUxOGY4MjFmY2I0YmMwMGI0MzA1MmQzZSIsInRhcmdldCI6Imh0dHBzOi8vZGIudGFjcmEuZXhhbXBsZSJ9MAoGCCqGSM49BAMCA0kAMEYCIQDMJuUELdODEqJB3p3wFkvNhjy/BdWoB6YCJGsS8X0p4QIhAJGYdtIpCm57KI8O9Xm6PmvmUNKyv7c8iFKolzLuOpViMQA="
+ },
+ "enrollment_absent_timestamp": {
+  "AttestationInitiationResponse": {
+   "acceptable_csk": [
+    "ecdsa-p256-sha256"
+   ],
+   "acceptable_evidence": [
+    "urn:tacra-est:evidence:sev-snp-json:1",
+    "urn:tacra-est:evidence:mock-json:1"
+   ],
+   "freshness_kind": "absent-timestamp",
+   "max_age": 60,
+   "mode": "enroll",
+   "rrp_id": "https://ca1.tacra.example"
+  },
+  "AttestedEnrollmentRequest": {
+   "binding": {
+    "hash": "sha512",
+    "method": "binding-input"
+   },
+   "credential_hint": "workload.tacra.example",
+   "credential_type": "x509",
+   "csr": "MIHcMIGDAgEAMCExHzAdBgNVBAMMFndvcmtsb2FkLnRhY3JhLmV4YW1wbGUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARC9FdPBHJsrN2h3nOyissVlXRxHotMT_aEPFtZ7ValKjOBi3ZfaAdcgOnQA_Ipb5N7YIaO1GTqFqBzNbdMnCTfoAAwCgYIKoZIzj0EAwIDSAAwRQIhAOqpR2iKtvKkGXLUJEqiOQck8dSem22-X-K3hkAUyqh7AiBqCTDzfttexkUeo2Zq_4065Zmoq1u_V7v7Gz96cEWrBQ",
+   "evidence": "eyJwbGF0Zm9ybV9mb3JtIjoiZGlyZWN0IiwicHViIjoiLS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1Ga3dFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVZHMVdjL3dyWm1VNVdpeW5jRytJck80Q3h4N1BcbmtkQzMzL1JWT0pkbmF5UnRPcnRTTGEyTUx3R0FQNHRTazJjcU1RQXM0UWxleVZBbUVWeTBaS3doS1E9PVxuLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tXG4iLCJyZXBvcnQiOiJleUpqYUdsd1gybGtJam9pTURBd01UQXlNRE13TkRBMU1EWXdOekE0TURrd1lUQmlNR013WkRCbE1HWXhNREV4TVRJeE16RTBNVFV4TmpFM01UZ3hPVEZoTVdJeFl6RmtNV1V4WmpJd01qRXlNakl6TWpReU5USTJNamN5T0RJNU1tRXlZakpqTW1ReVpUSm1NekF6TVRNeU16TXpORE0xTXpZek56TTRNemt6WVROaU0yTXpaRE5sTTJZaUxDSmpiM1Z1ZEdWeUlqb3hOaXdpYldWaGMzVnlaVzFsYm5RaU9pSTJaRFptTmpNMllqSmtObVEyTlRZeE56TTNOVGN5TmpVMlpEWTFObVUzTkRaa05tWTJNelppTW1RMlpEWTFOakUzTXpjMU56STJOVFprTmpVMlpUYzBObVEyWmpZek5tSXlaRFprTmpVMk1UY3pOelUzTWpZMU5tUTJOVFpsTnpRaUxDSnlaWEJ2Y25SZlpHRjBZU0k2SWpJek5tUmpOMlZoTkRFNFpEY3hOVFUwTXpoa1pqWmhOMkkzWkRRME56RXpZV0ppWVRSbVpEQTNZalkwWmpNd1ltWXlaV0ppTkRkalpESTVOalptWm1NM09ESmlNakJqWTJZNE5qTXlaREpsWXpreVpqRTBOV1kzWmpWaU1tUTBNREl4TVRVMk1tVm1OalF5TjJOaU1qSTBaak5sT0RWaVpEQmxOalk1T1RZeElpd2ljbVZ3YjNKMFgybGtJam9pTVRkbFlqQm1PVFkwWm1abFl6RXhOell6TkRsaE1qQmhOMlJoWkdWbVpUQmlaRGxsWWpNd05XVTRabVJrTlRZM01qZzNNakZoTkdFd1kyWmlORFEzT0NJc0luWmxjbk5wYjI0aU9pSnRiMk5yTFRFaWZRIiwic2lnIjoiTUVVQ0lGWl9WNVZfMTAtbFIyR0VVSERzb1NlaDRiZkd3TjVQNnlNcEx1REVfYWtxQWlFQXFnRDRSOXhMUnZFSWVrQmFCd09wZjZZTzZGWlRGbTFLelhYN21jT0wxYWciLCJ0eXBlIjoibW9jayJ9",
+   "freshness_kind": "absent-timestamp",
+   "handle": "AAAAAGq4WNc",
+   "profile": "urn:tacra-est:evidence:mock-json:1",
+   "target": "https://metrics.tacra.example"
+  },
+  "attest_initiate_query": {
+   "credential_type": "x509",
+   "target": "https://metrics.tacra.example"
+  }
+ },
+ "retrieval": {
+  "AttestationInitiationResponse": {
+   "acceptable_cek": [
+    "DHKEM(X25519,HKDF-SHA256)+HKDF-SHA256+AES-256-GCM"
+   ],
+   "acceptable_evidence": [
+    "urn:tacra-est:evidence:sev-snp-json:1",
+    "urn:tacra-est:evidence:mock-json:1"
+   ],
+   "expires_in": 300,
+   "freshness_kind": "present-nonce",
+   "handle": "jTY7YHLRZO6xvNO73hpr41AgcycSlgJ14-OgFaFtRb8",
+   "mode": "retrieve",
+   "rrp_id": "https://vault1.tacra.example"
+  },
+  "AttestedRetrievalRequest": {
+   "binding": {
+    "hash": "sha512",
+    "method": "binding-input"
+   },
+   "cek_pub": "MCowBQYDK2VuAyEARxabWBqdPPViAusCkwGUbQ8DPZ5jkRskhJ6vVZ1pTDw",
+   "credential_hint": "workload.tacra.example",
+   "credential_type": "x509",
+   "evidence": "eyJwbGF0Zm9ybV9mb3JtIjoiZGlyZWN0IiwicHViIjoiLS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1Ga3dFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVZHMVdjL3dyWm1VNVdpeW5jRytJck80Q3h4N1BcbmtkQzMzL1JWT0pkbmF5UnRPcnRTTGEyTUx3R0FQNHRTazJjcU1RQXM0UWxleVZBbUVWeTBaS3doS1E9PVxuLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tXG4iLCJyZXBvcnQiOiJleUpqYUdsd1gybGtJam9pTURBd01UQXlNRE13TkRBMU1EWXdOekE0TURrd1lUQmlNR013WkRCbE1HWXhNREV4TVRJeE16RTBNVFV4TmpFM01UZ3hPVEZoTVdJeFl6RmtNV1V4WmpJd01qRXlNakl6TWpReU5USTJNamN5T0RJNU1tRXlZakpqTW1ReVpUSm1NekF6TVRNeU16TXpORE0xTXpZek56TTRNemt6WVROaU0yTXpaRE5sTTJZaUxDSmpiM1Z1ZEdWeUlqb3lMQ0p0WldGemRYSmxiV1Z1ZENJNklqWmtObVkyTXpaaU1tUTJaRFkxTmpFM016YzFOekkyTlRaa05qVTJaVGMwTm1RMlpqWXpObUl5WkRaa05qVTJNVGN6TnpVM01qWTFObVEyTlRabE56UTJaRFptTmpNMllqSmtObVEyTlRZeE56TTNOVGN5TmpVMlpEWTFObVUzTkNJc0luSmxjRzl5ZEY5a1lYUmhJam9pWmpZMU5qSXdOV05oTURWbU5EUm1NREJtWWpreU16QTROVFl4TkRSbE1UVmlNbU5rTldNMk5URmpaV1F4WVRCa05XVXpNV05tTTJaaVkyWmtPV1k1WkRFNU4yWmxaR1ExWkRjNE1UZGhaakUyTURBNVpUSXlZVEUzWVdSallUbGpNemRsWlRjMk5EYzBNalV5TlRVMk1EVmtOV0UwWVRGa09XTmtZamN3WXpRaUxDSnlaWEJ2Y25SZmFXUWlPaUl5T1RCa00yTTVNbUV5TVRrelpqVmlOekZsT0RFd01qWmlObU0xTW1WbFpEYzRZalF6TjJSa09EZGxZekEwWmpCak5qWXdNelpsTVdFeU5EYzFNakZrSWl3aWRtVnljMmx2YmlJNkltMXZZMnN0TVNKOSIsInNpZyI6Ik1FWUNJUUNXV1FqT2s0VkZUMldvUVVET3pWbHBLVlNVNzZ1WC1TRTdvNFZYUHh5WWp3SWhBT0Y2UUlqMGxpclVJYzVuUG43ODZRS1BrU0FNSUJidUhWejVQSnM1djdWZyIsInR5cGUiOiJtb2NrIn0",
+   "freshness_kind": "present-nonce",
+   "handle": "jTY7YHLRZO6xvNO73hpr41AgcycSlgJ14-OgFaFtRb8",
+   "profile": "urn:tacra-est:evidence:mock-json:1",
+   "target": "https://ledger.tacra.example"
+  },
+  "EncryptedCredentialBundle": {
+   "aad": {
+    "credential_hint": "workload.tacra.example",
+    "group_id": "008867f76302e51ed583070bd39bda63d7924b8f5d526e313bde6ff33bc3f773",
+    "handle": "jTY7YHLRZO6xvNO73hpr41AgcycSlgJ14-OgFaFtRb8",
+    "rrp_id": "https://vault1.tacra.example",
+    "target": "https://ledger.tacra.example"
+   },
+   "ciphertext": "lSCWWK13qB_EGlN1qaboeizuvOVPTUlPbyf6KTkf2tb6ECSU5SUhRkBN2w49hUxQ6tJsGuvX68m5L_YgOgzIq0ydea4_iFtSJkC3FCHp3XR200B7Nc2_UH9c8YqDWPhfaDKeHbnRO0waF-BHOoIktI3IsewIYsTY0zURoPcH0lGoqpW8Gqjk8oeJd-IOJkGbYe6hVoNATEw6FsnzecAWJBK1ZVrTqkEPoMrBCGlIC8wYZTe0vFkJtoUhj8Z5HcWC9kB_Jk5OBdTclEWp-ty7-6xJCL5CvhKj-h1lBMgbHe9fjTDiKKLQBc4AfhZ9yH-zjen7hFKx77GFZX-i9jWSq2k_CQleSKNHfcL2-TvzuRQDTBmBBthpdpuWGEzaOSZQEOLwkANZFL_H7g1B0wqvzUO0xVSMM4ctZNUIBZbdkZ7byTvxzBFqbwwezAJSlktoWMWdnGkdq0nl5F4MuwXAJqozG2Vjtmy9w8YIqBM4-Mh-fior9fO23MjWRlhL_Li9QWY_69kPuG_nGPwwFrahl5mK",
+   "container": "hpke-auth",
+   "enc": "1gPJdB7RR1bsj725v-pzqofsCT6tK4p7Z1YkCxoeGR8",
+   "sender_pub": "MCowBQYDK2VuAyEAqOBq8gqhKO8NnFlu8MLi7AzMxxBeKzHdDLZzu8yNLh8",
+   "suite": {
+    "aead": "AES-256-GCM",
+    "kdf": "HKDF-SHA256",
+    "kem": "DHKEM(X25519, HKDF-SHA256)"
+   }
+  },
+  "attest_initiate_query": {
+   "credential_type": "x509",
+   "target": "https://ledger.tacra.example"
+  },
+  "vault_origin_spki_der": "MCowBQYDK2VuAyEAqOBq8gqhKO8NnFlu8MLi7AzMxxBeKzHdDLZzu8yNLh8"
+ },
+ "stamp": "20260926T234423Z",
+ "tee": "mock"
+}
