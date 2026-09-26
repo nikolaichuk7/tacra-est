@@ -45,7 +45,7 @@ def main(path):
     print("# Test Vector for the Binding Input {#test-vector}")
     print()
     print("Enrollment, direct form, SHA-512. The values are those of the enrollment in {{examples}} "
-          "(run %s); SHA-512(binding_input) equals %s. The CSR is ECDSA P-256 with subject "
+          "(run %s); the SHA-512 digest of binding_input equals %s. The CSR is ECDSA P-256 with subject "
           "CN=workload.tacra.example." % (v["stamp"], where))
     print()
     print("~~~")
