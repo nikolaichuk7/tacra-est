@@ -11,8 +11,9 @@ attestation-initiation-response = {
 }
 
 binding = {
-  method: "binding-input",
-  hash: "sha512" / "sha384" / "sha256",
+  method: tstr,                ; "binding-input", or an Evidence-to-CSR
+                               ; method such as "csr-hash", "cek-thumbprint"
+  ? hash: tstr,                ; digest algorithm, when the method uses one
 }
 
 freshness-kind = "absent-timestamp" / "absent-none" / "absent-epoch"

@@ -117,7 +117,7 @@ SNP_REQ_MAX_RETRY_DURATION (60 s) has passed since the first attempt
 requests between them. Because the 60 s are counted before the last sleep, a report can still
 arrive about 62 s after the first attempt.
 
-What was and was not measured. The report ioctl is 7.7-8.2 ms on the four chips where it was timed
+What was and was not measured. The report ioctl is 7.7-8.2 ms wherever it was timed
 alone. The one 162.55 ms figure is not the chip's and not the host's: it is the first run's
 Attester (commit 8836e0f) downloading the KDS certificate chain on every report while the burst
 timed the whole call. The current Attester downloads nothing (it uses the host's certificate
