@@ -1,6 +1,6 @@
-# The EST profile of TACRA in ProVerif: two attacks, two proofs
+# The EST profile of TACRA in ProVerif: three attacks, the proofs, and the assumptions
 
-`gen.py` writes four models from one template so that the "as in -00" and "as in the pull
+`gen.py` writes eight models from one template so that the "as in -00" and "as in the pull
 request" variants differ only in the lines that the pull request changes. `results/` holds the
 ProVerif 2.05 output, unedited.
 
@@ -35,8 +35,10 @@ Vault released.
   Client and the EST Server as conduits. Nothing else is dishonest.
 - The TEE attestation key `tk` is private; Evidence is `sign((meas, report_data), tk)` and the
   attacker can obtain genuine Evidence only by getting the honest Attester to produce it.
-- Two honest servers exist: S1 (`id1`), the one the Attester intends, and S2 (`id2`), with its own
-  CA and Vault. The Attester process always intends S1.
+- Two honest servers exist: S1 (`id1`), the one the Attester is configured to use, and S2 (`id2`),
+  with its own CA and Vault. The Attester process always intends S1 and Target `tA`; a server
+  accepts whatever Target the conduit names at initiation and requires the same one in the
+  second leg, as TACRA Sections 5.2 and 5.3 require.
 - Enrollment: the Attester makes a CSK and a self-signed CSR, reads the initiation response from
   the network, produces Evidence over the binding, and hands CSR and Evidence to the network. A
   server issues a Handle, receives CSR and Evidence, verifies the Evidence under `pk(tk)`, the
@@ -62,9 +64,11 @@ s)` for an `s` no Vault released.
 ## Why the two fixes close them
 
 With `server_id` in the binding input, the Attester only produces Evidence when the initiation
-response names its intended server, and every server recomputes the binding with its own
-identity; a Handle from S2 combined with `id1` matches nowhere. With `mode_auth`, only a party
-holding the Vault's private key can produce a ciphertext the Attester will open.
+response names the server it is configured to use, and every server recomputes the binding with
+its own identity; a Handle from S2 combined with `id1` matches nowhere. With the Target in the
+binding input as well, a Handle the conduit obtained for another Target does not match the
+Evidence the Attester produced for its own. With `mode_auth`, only a party holding the Vault's
+private key can produce a ciphertext the Attester will open.
 
 ## Reproduce
 
