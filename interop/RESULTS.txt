@@ -1,0 +1,14 @@
+# go test against TWI-Unified-Model/globalsign-est @ b6cdf01 (fork of globalsign/est), 2026-09-26T17:56:18Z
+# test file: interop/interop_tacra_test.go, placed in internal/mockca/ of a clone
+# go go1.27.0
+
+=== RUN   TestInterop_HappyEnroll
+--- PASS: TestInterop_HappyEnroll (0.00s)
+=== RUN   TestInterop_CSRNotBoundToEvidence
+    interop_tacra_test.go:114: FINDING: a certificate was issued for a CSR the Attester never bound to Evidence
+--- PASS: TestInterop_CSRNotBoundToEvidence (0.00s)
+=== RUN   TestInterop_BundleOriginNotAuthenticated
+    interop_tacra_test.go:146: FINDING: a bundle sealed with only CEKpub, by no Vault, was accepted by the Attester
+--- PASS: TestInterop_BundleOriginNotAuthenticated (0.00s)
+PASS
+ok  	github.com/globalsign/est/internal/mockca	(cached)
