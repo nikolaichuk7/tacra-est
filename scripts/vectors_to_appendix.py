@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Render the test vectors of a run (evidence/<stamp>/vectors.json) as a kramdown-rfc appendix:
+one example per structure, JSON as sent, long byte strings shortened with their length and
+SHA-256 so that the reader can verify them against the repository without wading through
+kilobytes of base64.
+
+    python3 scripts/vectors_to_appendix.py evidence/<stamp>-gcp-sev-snp/vectors.json > appendix.md
+"""
+import base64
+import hashlib
+import json
+import sys
+
+
+def b64u_dec(s: str) -> bytes:
+    return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
+
+
+def shorten(v, key=""):
+    if isinstance(v, str) and len(v) > 80 and key not in ("server_id", "credential_hint", "detail"):
+        try:
+            raw = b64u_dec(v) if not v.startswith("-----BEGIN") else v.encode()
+            return "<%d octets, SHA-256 %s>" % (len(raw), hashlib.sha256(raw).hexdigest()[:16])
+        except Exception:
+            return v[:60] + "..."
+    if isinstance(v, dict):
+        return {k: shorten(x, k) for k, x in v.items()}
+    if isinstance(v, list):
+        return [shorten(x) for x in v]
+    return v
+
+
+def block(title, obj):
+    print("## %s" % title)
+    print("")
+    print("~~~ json")
+    print(json.dumps(shorten(obj), indent=2, sort_keys=True))
+    print("~~~")
+    print("")
+
+
+def main(path):
+    v = json.load(open(path))
+    print("# Example Exchange {#examples}")
+    print('{:numbered="false"}')
+    print("")
+    print("Messages of one enrollment and one retrieval as produced by the reference implementation "
+          "[TACRA-EST-IMPL] with a %s Attester (run %s). Byte strings longer than 80 characters are "
+          "shown as their length and SHA-256; the full messages are in the repository." % (
+              "live AMD SEV-SNP" if v.get("tee") == "sev-snp" else "mock", v.get("stamp")))
+    print("")
+    e = v["enrollment"]
+    block("Enrollment: AttestationInitiationResponse", e["AttestationInitiationResponse"])
+    block("Enrollment: AttestedEnrollmentRequest", e["AttestedEnrollmentRequest"])
+    r = v["retrieval"]
+    block("Retrieval: AttestationInitiationResponse", r["AttestationInitiationResponse"])
+    block("Retrieval: AttestedRetrievalRequest", r["AttestedRetrievalRequest"])
+    block("Retrieval: EncryptedCredentialBundle", r["EncryptedCredentialBundle"])
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])

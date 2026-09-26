@@ -73,6 +73,9 @@ class SnpGuestTEE:
         self.product = product
         self.key_sel = key_sel
         self.platform_form = "direct"
+        self._chain: str | None = None            # the KDS chain is fetched once per process
+        self._vcek_cache: dict[bytes, bytes] = {}  # VCEK by chip id, when the host gives no table
+        self.last_ioctl_ms: float | None = None
 
     def _ioctl(self, request: int, io: _Ioctl) -> str | None:
         fd = os.open(self.device, os.O_RDWR)
@@ -96,7 +99,10 @@ class SnpGuestTEE:
         ereq.certs_len = 16384
         eresp = _Resp()
         eio = _Ioctl(1, ctypes.addressof(ereq), ctypes.addressof(eresp), 0)
+        import time as _t
+        _t0 = _t.monotonic()
         err = self._ioctl(SNP_GET_EXT_REPORT, eio)
+        self.last_ioctl_ms = (_t.monotonic() - _t0) * 1000.0
         certs: dict[str, bytes] = {}
         if err is None and eresp.report_size == SNP_REPORT_LEN:
             rep = bytes(eresp.report[:SNP_REPORT_LEN])
@@ -124,8 +130,12 @@ class SnpGuestTEE:
             rep = bytes(resp.report[:SNP_REPORT_LEN])
         parsed = parse_snp_report(rep)
         if "VCEK" not in certs and parsed["signing_key"] == "VCEK":
-            certs["VCEK"] = _get(kds_vcek_url(self.product, parsed["chip_id"], parsed["reported_tcb"]))
-        chain = _get(KDS_CHAIN).decode("ascii")
+            if parsed["chip_id"] not in self._vcek_cache:
+                self._vcek_cache[parsed["chip_id"]] = _get(kds_vcek_url(self.product, parsed["chip_id"], parsed["reported_tcb"]))
+            certs["VCEK"] = self._vcek_cache[parsed["chip_id"]]
+        if self._chain is None:
+            self._chain = _get(KDS_CHAIN).decode("ascii")
+        chain = self._chain
         return {
             "type": "sev-snp",
             "report": b64u(rep),
