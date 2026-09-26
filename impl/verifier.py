@@ -23,7 +23,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, utils as asn1
 
-from common import b64u_dec, parse_snp_report, SNP_SIGNED_LEN, SNP_REPORT_LEN
+from common import b64u_dec, parse_snp_report, SNP_SIGNED_LEN, SNP_REPORT_LEN, SNP_KNOWN_VERSIONS
 
 HWID_OID = "1.3.6.1.4.1.3704.1.4"
 
@@ -33,8 +33,8 @@ def _load_cert(b: bytes) -> x509.Certificate:
 
 
 def snp_signature_ok(rep: bytes, vcek: x509.Certificate) -> bool:
-    r = int.from_bytes(rep[0x2A0:0x2A0 + 48], "little")
-    s = int.from_bytes(rep[0x2A0 + 72:0x2A0 + 120], "little")
+    r = int.from_bytes(rep[0x2A0:0x2A0 + 72], "little")         # Table 148: 72-byte fields
+    s = int.from_bytes(rep[0x2A0 + 72:0x2A0 + 144], "little")
     try:
         vcek.public_key().verify(asn1.encode_dss_signature(r, s), rep[:SNP_SIGNED_LEN], ec.ECDSA(hashes.SHA384()))
         return True
@@ -85,6 +85,8 @@ class Verifier:
 
     # -- SEV-SNP -----------------------------------------------------------------------------
     def _appraise_snp(self, ev: dict) -> dict:
+        """Appraisal per AMD 56860 rev 1.59: Table 27 (report), Section 3.6 (MaskChipKey), Section 8.7
+        Table 51 (MaskChipId), Table 148 (signature format)."""
         checks = {}
         try:
             rep = b64u_dec(ev["report"])
@@ -92,17 +94,21 @@ class Verifier:
         except Exception as e:
             return {"ok": False, "reason": "report unparsable: %s" % e, "checks": checks}
         checks["report_length"] = len(rep) >= SNP_REPORT_LEN
-        checks["report_version"] = p["version"] in (2, 3, 4, 5)
+        checks["report_version_known"] = p["version"] in SNP_KNOWN_VERSIONS
+        checks["reserved_fields_zero"] = p["reserved_mbz_ok"]
+        # Section 3.6: with MaskChipKey set the firmware writes zeroes instead of a signature.
+        checks["report_is_signed"] = not p["mask_chip_key"] and not p["signature_all_zero"]
+        checks["signature_zero_extended"] = p["signature_zero_extended"]
+        signer = p["signing_key"] if p["signing_key"] in ("VCEK", "VLEK", "CSVCEK") else None
         certs = {k: b64u_dec(v) for k, v in (ev.get("certs") or {}).items()}
-        signer = "VCEK" if p["signing_key"] == "VCEK" else ("VLEK" if p["signing_key"] == "VLEK" else None)
         cert_der = certs.get(signer) if signer else None
         checks["signing_certificate_present"] = cert_der is not None
         sig_ok = False
         hwid_ok = None
-        if cert_der:
+        if cert_der and checks["report_is_signed"]:
             cert = _load_cert(cert_der)
             sig_ok = snp_signature_ok(rep, cert)
-            if signer == "VCEK":
+            if signer in ("VCEK", "CSVCEK") and not p["chip_id_zero"]:
                 hw = [e for e in cert.extensions if e.oid.dotted_string == HWID_OID]
                 hwid_ok = bool(hw) and hw[0].value.value[-64:] == p["chip_id"]
         checks["report_signature"] = sig_ok
@@ -115,13 +121,15 @@ class Verifier:
         checks["policy_no_debug"] = (not p["policy_debug"]) if self.refuse_debug else True
         if self.allowed_measurements is not None:
             checks["measurement_allowed"] = p["measurement"] in self.allowed_measurements
-        form = "direct" if signer == "VCEK" and not p["mask_chip_key"] else "provider-scoped"
+        # Platform form: a VLEK names the provider's key domain; a zero CHIP_ID (MaskChipId) names no chip.
+        form = "provider-scoped" if (signer == "VLEK" or p["chip_id_zero"]) else "direct"
         ok = all(v for v in checks.values() if v is not None)
         reason = None if ok else "; ".join(k for k, v in checks.items() if v is False)
         if not chain_ok and cert_der:
             reason = (reason or "") + " [chain: %s]" % chain_detail
         return {
             "ok": ok, "reason": reason, "platform": "sev-snp", "platform_form": form,
+            "report_version": p["version"],
             "binding_value": p["report_data"].hex(), "hash": "sha512",
             "measurement": p["measurement"].hex(), "chip_id": p["chip_id"].hex(), "report_id": p["report_id"].hex(),
             "signing_key": p["signing_key"], "reported_tcb": p["reported_tcb"], "checks": checks,

@@ -75,3 +75,30 @@ Message sizes with real Evidence: enrollment request 13 052 bytes (report 1 184 
 - CMS and COSE containers for the bundle; only HPKE is implemented.
 - Background Check mode; only Passport mode is run.
 - A CA identity as `server_id`; only the URI-origin form.
+
+## 5. Verifier checked against the primary specifications (26 September 2026)
+
+Read in full for the fields the implementation touches: AMD 56860 SEV Secure Nested Paging Firmware
+ABI Specification rev. 1.59 (August 2026, from docs.amd.com); Intel TDX Module ABI Reference
+348551-008US and Base Architecture 348549-008US (May 2026); Intel TDX DCAP Quote Library API.
+Four corrections to the SEV-SNP verifier resulted, each against a table number:
+
+- Report `VERSION` is 6 in rev. 1.59 (Table 27); the verifier accepted 2–5 and would have refused a
+  current report. It now accepts 2–6. Google Cloud Milan hosts still emit 5.
+- `SIGNING_KEY` (Table 27, offset 48h, bits 4:2) has a value 2, the chip-secret VCEK; the parser
+  now names it.
+- With `MASK_CHIP_KEY` set the firmware writes zeroes instead of a signature (Section 3.6); the
+  verifier had treated that bit as "provider-scoped". It now refuses an unsigned report, and
+  classifies as provider-scoped only a VLEK signature or a zero `CHIP_ID` (`MASK_CHIP_ID`, set by
+  the hypervisor through SNP_CONFIG, Section 8.7, Table 51).
+- R and S are 72-byte zero-extended little-endian fields (Table 148); the verifier read 48 bytes
+  and now reads 72 and requires the top 24 to be zero. Reserved must-be-zero ranges of Table 27
+  are now checked, as the specification's note asks of verifiers.
+
+Both recorded Google Cloud reports (12 and 26 September) pass every check; a report with
+`MASK_CHIP_KEY` set and a report with a reserved byte set are refused.
+
+Implementation note: AMD's VCEK certificate carries serial number 0 (`openssl x509 -serial` on
+`D1-cert-VCEK.bin`: `serial=00`); RFC 5280 Section 4.1.2.2 requires a positive serial, and
+`cryptography` warns that a future release will refuse to load it. Verifiers written against a
+strict X.509 parser should expect this.

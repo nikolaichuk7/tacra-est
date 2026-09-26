@@ -56,12 +56,18 @@ def binding_value(handle: bytes, server_id: str, subject: bytes, hash_name: str 
 
 
 # ---------------------------------------------------------------------------------------------
-# AMD SEV-SNP ATTESTATION_REPORT (SEV-SNP ABI Specification, publication 56860), the fields this
-# implementation reads. Offsets are those of the report structure; the signed portion is the first
-# 0x2A0 bytes and the ECDSA-P384 signature (r, s as 72-byte little-endian fields) follows.
+# AMD SEV-SNP ATTESTATION_REPORT, as defined in AMD publication 56860, SEV Secure Nested Paging
+# Firmware ABI Specification, revision 1.59 (August 2026), Table 27. The signed portion is bytes
+# 0h..29Fh; SIGNATURE is at 2A0h..49Fh in the format of Table 148 (ECDSA P-384 with SHA-384): R at
+# 000h and S at 048h, each 72 bytes, zero-extended little-endian.
 
 SNP_REPORT_LEN = 1184
 SNP_SIGNED_LEN = 0x2A0
+SNP_KNOWN_VERSIONS = (2, 3, 4, 5, 6)      # rev 1.59 sets VERSION to 6h
+# SIGNING_KEY, bits 4:2 of offset 48h (Table 27)
+SNP_SIGNING_KEY = {0: "VCEK", 1: "VLEK", 2: "CSVCEK", 7: "none"}
+# Byte ranges Table 27 marks reserved and must-be-zero in every report version 2..6
+SNP_RESERVED_MBZ = ((0x4C, 0x50), (0x18B, 0x1A0), (0x208, 0x220), (0x280, 0x2A0))
 
 
 def parse_snp_report(rep: bytes) -> dict:
@@ -71,15 +77,18 @@ def parse_snp_report(rep: bytes) -> dict:
     version = struct.unpack_from("<I", rep, 0x00)[0]
     policy = struct.unpack_from("<Q", rep, 0x08)[0]
     flags = struct.unpack_from("<I", rep, 0x48)[0]
-    signing_key = {0: "VCEK", 1: "VLEK", 7: "none"}.get((flags >> 2) & 7, (flags >> 2) & 7)
     reported_tcb = rep[0x180:0x188]
+    sig_r = rep[0x2A0:0x2A0 + 72]
+    sig_s = rep[0x2A0 + 72:0x2A0 + 144]
+    reserved_ok = (flags >> 6) == 0 and all(rep[a:b] == bytes(b - a) for a, b in SNP_RESERVED_MBZ)
     return {
         "version": version,
         "policy": policy,
-        "policy_debug": bool((policy >> 19) & 1),      # DEBUG bit of the guest policy
-        "signing_key": signing_key,
-        "mask_chip_key": (flags >> 1) & 1,
+        "policy_debug": bool((policy >> 19) & 1),      # Table 12: DEBUG is bit 19
+        "signing_key": SNP_SIGNING_KEY.get((flags >> 2) & 7, "reserved-%d" % ((flags >> 2) & 7)),
+        "mask_chip_key": (flags >> 1) & 1,              # 1: the report is NOT signed (Section 3.6)
         "author_key_en": flags & 1,
+        "reserved_mbz_ok": reserved_ok,
         "report_data": rep[0x50:0x90],
         "measurement": rep[0x90:0xC0],
         "host_data": rep[0xC0:0xE0],
@@ -89,8 +98,12 @@ def parse_snp_report(rep: bytes) -> dict:
         "report_id_ma": rep[0x160:0x180],
         "reported_tcb": {"bl": reported_tcb[0], "tee": reported_tcb[1], "snp": reported_tcb[6], "ucode": reported_tcb[7]},
         "chip_id": rep[0x1A0:0x1E0],
-        "signature_r": rep[0x2A0:0x2A0 + 72],
-        "signature_s": rep[0x2A0 + 72:0x2A0 + 144],
+        "chip_id_zero": rep[0x1A0:0x1E0] == bytes(64),  # MASK_CHIP_ID set by the hypervisor (Section 8.7, Table 51)
+        "signature_r": sig_r,
+        "signature_s": sig_s,
+        # R and S are 72-byte zero-extended little-endian fields; a P-384 value fits in 48 bytes
+        "signature_zero_extended": sig_r[48:] == bytes(24) and sig_s[48:] == bytes(24),
+        "signature_all_zero": rep[0x2A0:0x4A0] == bytes(0x200),
     }
 
 
