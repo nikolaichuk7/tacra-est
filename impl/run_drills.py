@@ -38,7 +38,7 @@ TARGET_A = "https://db.tacra.example"          # the Target the Attester seeks a
 TARGET_B = "https://payments.tacra.example"    # another Target the same servers provision (Enrollment)
 TARGET_R = "https://ledger.tacra.example"      # a Target whose existing credential the Vault releases (Retrieval)
 CTYPE = "x509"
-# The servers' policy: the mechanism is chosen per Target (TACRA Design Goal 5)
+# The servers' policy: Enrollment or Retrieval is decided per Target (TACRA Section 4.4, Goal 1)
 TARGETS = {TARGET_A: {"mechanism": "enroll", "credential_types": {CTYPE}},
            TARGET_B: {"mechanism": "enroll", "credential_types": {CTYPE}},
            TARGET_R: {"mechanism": "retrieve", "credential_types": {CTYPE}}}

@@ -10,9 +10,9 @@ Evidence itself (the Verifier does) and does not decide issuance (the CA and the
 correlates the Handle of the second leg with the one it issued in the first.
 
 `attest-initiate` takes the two query parameters of the draft, `target` and `credential_type`. The
-server decides the Credential Acquisition Mode from its policy for that Target: the mechanism is
-chosen per Target (TACRA Design Goal 5), as in the TWI SIG implementation's TargetPolicy (name,
-mechanism, credential types).
+server decides the Credential Acquisition Mode, Enrollment or Retrieval, from its policy for that
+Target (TACRA Section 4.4: the CAS decides, per Target, what can be provisioned; Goal 1), as in the
+TWI SIG implementation's TargetPolicy (name, mechanism, credential types).
 
 Implementation conveniences beyond the draft, documented here so they are not mistaken for it:
   * `--legacy-binding` makes the CA and the Vault recompute the -00 binding, H(handle || subject)
@@ -134,7 +134,7 @@ class ServerState:
                  targets: dict[str, dict] | None = None):
         self.server_id = server_id
         # Target -> {"mechanism": "enroll" | "retrieve", "credential_types": {...}}: how this server
-        # provisions credentials for the Target, and which types (TACRA Design Goal 5, Sections 5.1-5.3)
+        # provisions credentials for the Target, and which types (TACRA Section 4.4 and Sections 5.1-5.3)
         self.targets = targets or {}
         self.verifier = verifier
         self.ca = ca

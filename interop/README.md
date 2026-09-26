@@ -19,7 +19,7 @@ Credential Authority verifies proof of possession and issues; a replayed Handle 
 retrieval bundle already carries `server_id` and the Handle in its associated data, as our
 Attester-side checks expect. `attest-initiate` takes the Target and the Credential Type as the
 query parameters `target` and `credential_type` (`common.go`, lines 43-44), and the mock CA chooses
-the mechanism from a per-Target policy (`TargetPolicy` with a name, a mechanism and credential
+the mode, enrollment or retrieval, from a per-Target policy (`TargetPolicy` with a name, a mechanism and credential
 types, `internal/mockca/attest.go`); the pull request's text and our server do the same.
 
 ## What the two findings show, in their own running code
