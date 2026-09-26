@@ -1,9 +1,9 @@
 attestation-initiation-response = {
   freshness_kind: freshness-kind,
-  ? handle: bstr,              ; REQUIRED for present-*, else absent
-  server_id: tstr,
-  ? expires_in: uint,
-  ? max_age: uint,
+  ? handle: bstr,              ; present-* only: the Freshness Handle
+  rrp_id: tstr,                ; the RRP that will rely on the Evidence
+  ? expires_in: uint,          ; present-* only
+  ? max_age: uint,             ; absent-timestamp only
   mode: "enroll" / "retrieve",
   ? acceptable_csk: [+ tstr],  ; when mode is "enroll"
   ? acceptable_cek: [+ tstr],  ; when mode is "retrieve"
@@ -11,9 +11,8 @@ attestation-initiation-response = {
 }
 
 binding = {
-  method: tstr,                ; "binding-input", or an Evidence-to-CSR
-                               ; method such as "csr-hash", "cek-thumbprint"
-  ? hash: tstr,                ; digest algorithm, when the method uses one
+  method: "binding-input",
+  hash: tstr,                  ; "sha512" for a 64-octet field
 }
 
 freshness-kind = "absent-timestamp" / "absent-none" / "absent-epoch"
@@ -23,8 +22,10 @@ request-common = (
   freshness_kind: freshness-kind,
   target: tstr,                ; the Target (TACRA)
   credential_type: tstr,
-  ? handle: bstr,
-  evidence: bstr,              ; opaque
+  ? handle: bstr,              ; absent only for absent-none; for
+                               ; absent-timestamp, 8 octets: seconds
+                               ; since 1970-01-01T00:00:00Z
+  evidence: bstr,              ; opaque; carries the binding input
   ? profile: tstr,             ; format of evidence
   binding: binding,
   ? credential_hint: tstr,
@@ -41,14 +42,14 @@ attested-retrieval-request = {
 }
 
 encrypted-credential-bundle = {
-  container: "hpke-auth" / "cms-signed-enveloped"
-           / "cose-sign1-encrypt0",
+  container: "hpke-auth"       ; mandatory to implement
+           / "cms-signed-enveloped" / "cose-sign1-encrypt0",
   ? suite: { kem: tstr, kdf: tstr, aead: tstr },
   ? enc: bstr,                 ; HPKE encapsulated key
   ciphertext: bstr,
   aad: {
     group_id: tstr,
-    server_id: tstr,
+    rrp_id: tstr,
     target: tstr,
     ? handle: bstr,
     ? credential_hint: tstr,

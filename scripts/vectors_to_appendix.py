@@ -19,7 +19,7 @@ def b64u_dec(s: str) -> bytes:
 def shorten(v, key=""):
     if key == "group_id" and isinstance(v, str) and len(v) == 64:
         return v[:16] + "... (64 hex digits)"
-    if isinstance(v, str) and len(v) > 40 and key not in ("server_id", "credential_hint", "detail", "handle"):
+    if isinstance(v, str) and len(v) > 40 and key not in ("rrp_id", "credential_hint", "detail", "handle"):
         try:
             raw = b64u_dec(v) if not v.startswith("-----BEGIN") else v.encode()
             return "<%d octets, SHA-256 %s>" % (len(raw), hashlib.sha256(raw).hexdigest()[:16])
@@ -79,6 +79,22 @@ def main(path):
           "signing key:")
     print("")
     json_block(ev)
+    t = v.get("enrollment_absent_timestamp")
+    if t:
+        print("## Enrollment with absent-timestamp")
+        print("")
+        print("For a Target whose policy is `absent-timestamp` (`target=%s`), the AttestationInitiationResponse "
+              "carries no Handle and gives `max_age`:" % t["attest_initiate_query"]["target"])
+        print("")
+        json_block(t["AttestationInitiationResponse"])
+        h = b64u_dec(t["AttestedEnrollmentRequest"]["handle"])
+        import struct, time
+        secs = struct.unpack(">Q", h)[0]
+        print("The request carries the Attester's timestamp in `handle`, 8 octets, %s, that is %d seconds "
+              "since 1970-01-01T00:00:00Z (%s), and the binding input takes it in the Handle's place:"
+              % (h.hex(), secs, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(secs))))
+        print("")
+        json_block(t["AttestedEnrollmentRequest"])
     r = v["retrieval"]
     initiate("Retrieval", r["attest_initiate_query"], "Retrieval")
     json_block(r["AttestationInitiationResponse"])

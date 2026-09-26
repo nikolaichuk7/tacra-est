@@ -6,11 +6,20 @@ and receives responses from it, exactly as the draft's Figure 1 has it. Everythi
 returns is treated as untrusted input.
 
 Two identities are kept apart, as TACRA keeps them apart:
-  target     the Target: the RATS-unaware Relying Party for which the Attester seeks credentials
-             (TACRA Section 2), e.g. a database the workload will authenticate to;
-  server_id  the EST Server the Attester's Credential Acquisition Interface is configured to use for
-             that Target (TACRA Design Goal 5: mechanisms per Target).
-Both go into the binding input, so the conduit can change neither.
+  target  the Target: the RATS-unaware Relying Party for which the Attester seeks credentials
+          (TACRA Section 2), e.g. a database the workload will authenticate to;
+  rrp_id  the RATS Relying Party that will rely on the Evidence: the Credential Authority
+          (Enrollment) or the Secret Vault (Retrieval). The Attester binds the identifier its
+          Credential Acquisition Interface holds for the Target, if it holds one, and otherwise
+          the one in the attest-initiate response, and compares the two with nothing. Only a held
+          identifier makes the RRP the one the deployment intended; one taken from the response
+          keeps the Evidence to a single RRP, which the conduit chooses (formal/README.md).
+Both go into the binding input, so the conduit can change neither once the Evidence exists.
+
+Freshness, the five kinds of TACRA Section 2.1: present-nonce and present-epoch take the Handle
+from the response; absent-epoch embeds the epoch marker the Attester holds (epoch_source);
+absent-timestamp embeds the Attester's time (clock) as an 8-octet big-endian count of seconds;
+absent-none embeds nothing. For the absent kinds attest-initiate can be completed locally.
 """
 import hashlib
 import json
@@ -22,8 +31,8 @@ from cryptography.hazmat.primitives.asymmetric import ec, x25519
 from cryptography.x509.oid import NameOID
 from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey
 
-from common import (PROFILE_MOCK, PROFILE_SNP, b64u_dec, binding_value, canonical_json,
-                    encode_evidence, enrollment_request, retrieval_request)
+from common import (FRESHNESS_KINDS, PROFILE_MOCK, PROFILE_SNP, b64u_dec, binding_value, canonical_json,
+                    encode_evidence, encode_timestamp, enrollment_request, retrieval_request)
 
 SUITE = CipherSuite.new(KEMId.DHKEM_X25519_HKDF_SHA256, KDFId.HKDF_SHA256, AEADId.AES256_GCM)
 
@@ -32,23 +41,27 @@ class AttesterError(Exception):
     pass
 
 
-def hpke_info(server_id: str, handle: bytes | None) -> bytes:
-    """info parameter of the HPKE context: server_id and the Handle, length-prefixed, so that the
-    ciphertext is bound to the sender's identity as RFC 9180 Section 5.1.3 recommends."""
-    sid = server_id.encode("utf-8")
+def hpke_info(rrp_id: str, handle: bytes | None) -> bytes:
+    """info parameter of the HPKE context: the RRP identifier and the freshness element,
+    length-prefixed, so that the ciphertext is bound to the sender's identity as RFC 9180
+    Section 5.1.3 recommends."""
+    rid = rrp_id.encode("utf-8")
     h = handle or b""
-    return len(sid).to_bytes(4, "big") + sid + len(h).to_bytes(4, "big") + h
+    return len(rid).to_bytes(4, "big") + rid + len(h).to_bytes(4, "big") + h
 
 
 class Attester:
-    def __init__(self, tee, server_id: str, target: str, credential_type: str,
+    def __init__(self, tee, target: str, credential_type: str, rrp_id: str | None = None,
                  vault_origin_spki_der: bytes | None = None, hash_name: str = "sha512",
-                 subject_cn: str = "workload.tacra.example",
+                 subject_cn: str = "workload.tacra.example", epoch_source=None, clock=time.time,
                  legacy_bundle_base_mode: bool = False, legacy_binding: bool = False):
         self.tee = tee
-        self.server_id = server_id              # configured for this Target in the Attester's CAI
         self.target = target                    # TACRA Target
         self.credential_type = credential_type
+        self.rrp_id = rrp_id                    # held in the CAI's configuration for this Target, or None
+        self.bound_rrp_id: str | None = None    # the identifier the Evidence binds
+        self.epoch_source = epoch_source        # absent-epoch: returns the epoch marker held locally
+        self.clock = clock                      # absent-timestamp: the Attester's trusted clock
         self.vault_origin_spki_der = vault_origin_spki_der
         self.hash_name = hash_name
         self.subject_cn = subject_cn
@@ -69,9 +82,11 @@ class Attester:
         return {"target": self.target, "credential_type": self.credential_type}
 
     def _binding(self, subject: bytes) -> bytes:
+        if self.freshness_kind == "absent-timestamp":
+            self.handle = encode_timestamp(self.clock())    # stamped as the Evidence is produced
         if self.legacy_binding:
             return hashlib.sha512((self.handle or b"") + subject).digest()
-        return binding_value(self.handle, self.server_id, self.target, subject, self.hash_name)
+        return binding_value(self.handle, self.bound_rrp_id, self.target, subject, self.hash_name)
 
     def _evidence(self, bv: bytes) -> tuple[bytes, str]:
         t0 = time.monotonic()
@@ -80,30 +95,47 @@ class Attester:
         profile = PROFILE_SNP if ev.get("type") == "sev-snp" else PROFILE_MOCK
         return encode_evidence(ev), profile
 
+    def _set_freshness(self, kind: str, response_handle: bytes | None) -> None:
+        if kind in ("present-nonce", "present-epoch"):
+            self.handle = response_handle
+        elif kind == "absent-epoch":
+            if self.epoch_source is None:
+                raise AttesterError("absent-epoch, but no epoch marker is held locally")
+            self.handle = self.epoch_source()
+        else:                                   # absent-timestamp: set when the Evidence is produced
+            self.handle = b""
+        self.freshness_kind = kind
+
     # -- first leg ---------------------------------------------------------------------------
     def accept_initiation(self, response: dict) -> None:
-        """AttestationInitiationResponse, as delivered by the conduit. The Attester compares
-        server_id with the EST Server it is configured to use for its Target and stops if they
-        differ."""
-        sid = response.get("server_id")
-        if sid != self.server_id:
-            raise AttesterError("server_id %r is not the EST Server %r configured for Target %r; not producing Evidence"
-                                % (sid, self.server_id, self.target))
+        """AttestationInitiationResponse, as delivered by the conduit."""
         kind = response.get("freshness_kind")
-        if kind in ("present-nonce", "present-epoch"):
-            if "handle" not in response:
-                raise AttesterError("freshness_kind %s without a handle" % kind)
-            self.handle = b64u_dec(response["handle"])
-        elif kind in ("absent-timestamp", "absent-none", "absent-epoch"):
-            if "handle" in response:
-                raise AttesterError("handle present for an absent-* freshness kind")
-            self.handle = b""
-        else:
+        if kind not in FRESHNESS_KINDS:
             raise AttesterError("unknown freshness_kind %r" % kind)
-        self.freshness_kind = kind
+        if kind.startswith("present-") and "handle" not in response:
+            raise AttesterError("freshness_kind %s without a handle" % kind)
+        if kind.startswith("absent-") and "handle" in response:
+            raise AttesterError("handle present for an absent-* freshness kind")
         self.mode = response.get("mode")
         if self.mode not in ("enroll", "retrieve"):
             raise AttesterError("unknown mode %r" % self.mode)
+        self._set_freshness(kind, b64u_dec(response["handle"]) if "handle" in response else None)
+        self.bound_rrp_id = self.rrp_id or response.get("rrp_id")
+        if not self.bound_rrp_id:
+            raise AttesterError("no RRP identifier: none held for the Target and none in the response")
+
+    def local_initiation(self, freshness_kind: str, mode: str) -> None:
+        """attest-initiate completed locally: only for an absent-* kind, and only with the RRP
+        identifier held for the Target, since there is no response to take it from."""
+        if not freshness_kind.startswith("absent-") or freshness_kind not in FRESHNESS_KINDS:
+            raise AttesterError("only an absent-* freshness kind can be initiated locally")
+        if not self.rrp_id:
+            raise AttesterError("a local attest-initiate needs the RRP identifier held for the Target")
+        if mode not in ("enroll", "retrieve"):
+            raise AttesterError("unknown mode %r" % mode)
+        self.mode = mode
+        self._set_freshness(freshness_kind, None)
+        self.bound_rrp_id = self.rrp_id
 
     # -- enrollment --------------------------------------------------------------------------
     def make_enrollment_request(self, credential_hint: str | None = None) -> dict:
@@ -137,20 +169,20 @@ class Attester:
                                  self.cek_spki_der, evidence, profile, self.hash_name, credential_hint)
 
     def accept_bundle(self, bundle: dict, expected_group_id: str | None = None) -> dict:
-        """Attester Processing (pull request, 9.2.6): origin, then server_id, target and handle in
+        """Attester Processing (pull request, 9.2.6): origin, then rrp_id, target and handle in
         the associated data, then decrypt and check group_id and credential_hint."""
         aad = bundle.get("aad") or {}
-        if aad.get("server_id") != self.server_id:
-            raise AttesterError("bundle server_id %r is not my EST Server %r" % (aad.get("server_id"), self.server_id))
+        if aad.get("rrp_id") != self.bound_rrp_id:
+            raise AttesterError("bundle rrp_id %r is not the RRP %r my Evidence binds" % (aad.get("rrp_id"), self.bound_rrp_id))
         if aad.get("target") != self.target:
             raise AttesterError("bundle target %r is not my Target %r" % (aad.get("target"), self.target))
         h = b64u_dec(aad["handle"]) if aad.get("handle") else b""
         if h != (self.handle or b""):
-            raise AttesterError("bundle handle differs from the Handle I embedded")
+            raise AttesterError("bundle handle differs from the freshness element I embedded")
         if (aad.get("credential_hint") or None) != (self.credential_hint or None):
             raise AttesterError("bundle credential_hint differs from the one I requested")
         aad_bytes = canonical_json(aad)
-        info = hpke_info(self.server_id, self.handle)
+        info = hpke_info(self.bound_rrp_id, self.handle)
         skr = KEMKey.from_pyca_cryptography_key(self.cek)
         enc = b64u_dec(bundle["enc"])
         ct = b64u_dec(bundle["ciphertext"])

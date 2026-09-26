@@ -4,8 +4,8 @@ Server. It has no RATS role and no keys of the Attester's. Two conduits are impl
   Conduit       the honest one: relays initiate/enroll/retrieve between the Attester and the
                 server the Attester named.
   EvilConduit   the attacker of TACRA Section 7.2: the same code path, but it may carry the
-                Attester's messages to a different server (server substitution) or hand the
-                Attester a bundle of its own making (bundle substitution).
+                Attester's messages to a server fronting a different RRP (RRP substitution) or
+                hand the Attester a bundle of its own making (bundle substitution).
 """
 import base64
 import http.client
@@ -74,30 +74,31 @@ class Conduit:
 
 
 class EvilConduit(Conduit):
-    """Sits between the Attester and the servers, as the untrusted conduit may. `pretend_server_id`
-    is what it tells the Attester in the initiation response (the EST Server the Attester intended), while
-    the Handle comes from, and the request goes to, `self.ep` (another server)."""
+    """Sits between the Attester and the servers, as the untrusted conduit may. The Handle comes
+    from, and the request goes to, `self.ep`, a server fronting another RRP. If `pretend_rrp_id` is
+    set, the conduit also rewrites the RRP identifier in the initiation response (the lie); if not,
+    it passes that server's response on unchanged."""
 
-    def __init__(self, endpoint: ServerEndpoint, pretend_server_id: str):
+    def __init__(self, endpoint: ServerEndpoint, pretend_rrp_id: str | None = None):
         super().__init__(endpoint)
-        self.pretend = pretend_server_id
+        self.pretend = pretend_rrp_id
 
     def initiate(self, target: str, credential_type: str) -> dict:
-        body = super().initiate(target, credential_type)
-        body = dict(body)
-        body["server_id"] = self.pretend     # the lie: the Attester sees the server it intended
+        body = dict(super().initiate(target, credential_type))
+        if self.pretend:
+            body["rrp_id"] = self.pretend    # the lie: the Attester sees the RRP it intended
         return body
 
     @staticmethod
-    def forge_bundle(cek_spki_der: bytes, server_id: str, handle: bytes, credential_hint: str | None,
+    def forge_bundle(cek_spki_der: bytes, rrp_id: str, handle: bytes, credential_hint: str | None,
                      group_id: str, attacker_items: dict, target: str = "") -> dict:
         """Bundle substitution: a well-formed container encrypted to CEKpub in base mode, made by
         someone who has only seen CEKpub in the Evidence. No Vault key is involved."""
-        aad = {"group_id": group_id, "server_id": server_id, "target": target, "credential_hint": credential_hint}
+        aad = {"group_id": group_id, "rrp_id": rrp_id, "target": target, "credential_hint": credential_hint}
         if handle:
             aad["handle"] = b64u(handle)
         pkr = KEMKey.from_pyca_cryptography_key(serialization.load_der_public_key(cek_spki_der))
-        enc, ctx = SUITE.create_sender_context(pkr, info=hpke_info(server_id, handle))
+        enc, ctx = SUITE.create_sender_context(pkr, info=hpke_info(rrp_id, handle))
         ct = ctx.seal(canonical_json(attacker_items), aad=canonical_json(aad))
         return {"container": "hpke-base", "suite": {"kem": "DHKEM(X25519, HKDF-SHA256)", "kdf": "HKDF-SHA256", "aead": "AES-256-GCM"},
                 "enc": b64u(enc), "ciphertext": b64u(ct), "aad": aad, "sender_pub": None}
@@ -106,7 +107,7 @@ class EvilConduit(Conduit):
 class TargetSwapConduit(Conduit):
     """Target substitution: the conduit initiates for a Target of its choosing instead of the one the
     Attester named, and presents the Attester's request under that Target. The server is the one
-    the Attester intended, so server_id is genuine."""
+    the Attester intended, so the RRP identifier is genuine."""
 
     def __init__(self, endpoint: ServerEndpoint, substitute_target: str):
         super().__init__(endpoint)

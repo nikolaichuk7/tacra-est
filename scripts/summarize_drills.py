@@ -8,18 +8,31 @@ import json
 import statistics
 import sys
 
-TEXT = {"D1": "PR", "D2": "PR", "D3": "PR", "D4": "-00", "D5": "PR", "D5b": "PR", "D6": "-00", "D7": "PR", "D9": "PR", "D10": "-00"}
+TEXT = {"D1": "PR", "D2": "PR", "D3": "PR", "D3b": "PR", "D4": "-00", "D5": "PR", "D5b": "PR", "D6": "-00", "D7": "PR", "D9": "PR", "D10": "-00",
+        "D11": "PR", "D12": "PR", "D13": "PR", "D14": "PR", "D15": "PR", "D16": "PR", "D17": "PR", "D18": "PR", "D19": "PR", "D20": "-00", "D21": "PR"}
 LABEL = {
-    "D1_enroll_honest": "D1 honest enrollment at S1",
-    "D2_retrieve_honest": "D2 honest retrieval at S1",
-    "D3_server_substitution_pr_text": "D3 server substitution (conduit says S1, carries to S2)",
-    "D4_server_substitution_draft00": "D4 server substitution",
+    "D1_enroll_honest": "D1 honest enrollment at S1, present-nonce",
+    "D2_retrieve_honest": "D2 honest retrieval at S1, present-nonce",
+    "D3_rrp_substitution_held_id": "D3 RRP substitution, identifier held by the Attester (conduit says CA1, carries to S2)",
+    "D3b_rrp_substitution_id_from_response": "D3b RRP substitution, identifier taken from S2's response",
+    "D4_rrp_substitution_draft00": "D4 RRP substitution",
     "D5_bundle_substitution_pr_text": "D5 bundle substitution, base-mode container",
     "D5b_bundle_substitution_forged_auth_pr_text": "D5b bundle substitution, forged hpke-auth under the attacker's key",
     "D6_bundle_substitution_draft00": "D6 bundle substitution",
     "D7_handle_replay": "D7 Handle replay",
     "D9_target_substitution_pr_text": "D9 target substitution (conduit initiates for another Target)",
     "D10_target_substitution_draft00": "D10 target substitution",
+    "D11_present_epoch_honest": "D11 honest enrollment, present-epoch",
+    "D12_present_epoch_moved": "D12 present-epoch, epoch moved between the legs",
+    "D13_absent_epoch_honest": "D13 honest enrollment, absent-epoch",
+    "D14_absent_timestamp_honest": "D14 honest enrollment, absent-timestamp",
+    "D15_absent_timestamp_local_initiate": "D15 absent-timestamp, attest-initiate completed locally",
+    "D16_absent_timestamp_stale": "D16 absent-timestamp, clock 120 s behind, max_age 60",
+    "D17_absent_none_honest": "D17 honest enrollment, absent-none",
+    "D18_absent_timestamp_retrieval": "D18 honest retrieval, absent-timestamp",
+    "D19_shared_freshness_two_rrps": "D19 one absent-timestamp request posted to S1, then to S2",
+    "D20_shared_freshness_two_rrps_draft00": "D20 one absent-timestamp request posted to S1, then to S2",
+    "D21_absent_timestamp_replay_same_rrp": "D21 one absent-timestamp request posted to S1 twice",
 }
 
 
@@ -39,6 +52,15 @@ def main(path):
         short = k.split("_")[0]
         if k == "D7_handle_replay":
             print("| %s | PR | first: %s; second: %s %s | | |" % (LABEL[k], v["first"], v["second_status"], (v.get("second_error") or {}).get("error")))
+            continue
+        if k == "D12_present_epoch_moved":
+            print("| %s | PR | first: %s %s; retry: %s | | |" % (LABEL[k], v["first_status"], (v.get("first_error") or {}).get("error"), v["retry"]))
+            continue
+        if k in ("D19_shared_freshness_two_rrps", "D20_shared_freshness_two_rrps_draft00"):
+            print("| %s | %s | S1: %s; S2: %s | | |" % (LABEL[k], TEXT.get(short, ""), v["at_S1"], v["at_S2"]))
+            continue
+        if k == "D21_absent_timestamp_replay_same_rrp":
+            print("| %s | PR | first: %s; again: %s | | |" % (LABEL[k], v["first"], v["again_at_S1"]))
             continue
         t = v.get("timings_ms") or {}
         rt = t.get("enroll_ms") or t.get("retrieve_ms")

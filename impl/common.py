@@ -33,32 +33,52 @@ def canonical_json(obj) -> bytes:
 # ---------------------------------------------------------------------------------------------
 # The binding input (pull request, "Binding Input"):
 #
-#   binding_input = len32(handle)    || handle
-#                || len32(server_id) || server_id
-#                || len32(target)    || target
-#                || len32(subject)   || subject
+#   binding_input = len32(handle)  || handle
+#                || len32(rrp_id)  || rrp_id
+#                || len32(target)  || target
+#                || len32(subject) || subject
 #
-# handle: the Freshness Handle, empty for absent-* kinds; server_id: UTF-8 of the server_id string
-# (the EST Server the Attester's Credential Acquisition Interface is configured to use for the
-# Target); target: UTF-8 of the Target, the RATS-unaware Relying Party for which the Attester seeks
-# credentials (TACRA Section 2); subject: DER of the CSR (Enrollment) or DER SubjectPublicKeyInfo
-# of CEKpub (Retrieval). The digest is SHA-512 where the platform field is 64 octets.
+# handle: the freshness element the request carries (the Freshness Handle for present-nonce and
+# present-epoch, the locally held epoch marker for absent-epoch, the Attester's timestamp for
+# absent-timestamp), empty only for absent-none; rrp_id: UTF-8 of the identifier of the RATS
+# Relying Party that will rely on the Evidence (the Credential Authority for Enrollment, the
+# Secret Vault for Retrieval); target: UTF-8 of the Target, the RATS-unaware Relying Party for
+# which the Attester seeks credentials (TACRA Section 2); subject: DER of the CSR (Enrollment) or
+# DER SubjectPublicKeyInfo of CEKpub (Retrieval). The digest is SHA-512 where the platform field
+# is 64 octets.
 
 def len32(b: bytes) -> bytes:
     return struct.pack(">I", len(b))
 
 
-def binding_input(handle: bytes, server_id: str, target: str, subject: bytes) -> bytes:
-    sid = server_id.encode("utf-8")
+def binding_input(handle: bytes, rrp_id: str, target: str, subject: bytes) -> bytes:
+    rid = rrp_id.encode("utf-8")
     tgt = target.encode("utf-8")
-    return len32(handle) + handle + len32(sid) + sid + len32(tgt) + tgt + len32(subject) + subject
+    return len32(handle) + handle + len32(rid) + rid + len32(tgt) + tgt + len32(subject) + subject
 
 
 HASHES = {"sha512": hashlib.sha512, "sha384": hashlib.sha384, "sha256": hashlib.sha256}
 
 
-def binding_value(handle: bytes, server_id: str, target: str, subject: bytes, hash_name: str = "sha512") -> bytes:
-    return HASHES[hash_name](binding_input(handle, server_id, target, subject)).digest()
+def binding_value(handle: bytes, rrp_id: str, target: str, subject: bytes, hash_name: str = "sha512") -> bytes:
+    return HASHES[hash_name](binding_input(handle, rrp_id, target, subject)).digest()
+
+
+# absent-timestamp: the Attester's time travels in the request's `handle` field, and so in the
+# binding input, as an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z
+# (the NumericDate of RFC 7519, as an integer).
+
+def encode_timestamp(t: float) -> bytes:
+    return struct.pack(">Q", int(t))
+
+
+def decode_timestamp(b: bytes) -> int:
+    if len(b) != 8:
+        raise ValueError("an absent-timestamp handle is 8 octets, not %d" % len(b))
+    return struct.unpack(">Q", b)[0]
+
+
+FRESHNESS_KINDS = ("absent-timestamp", "absent-none", "absent-epoch", "present-nonce", "present-epoch")
 
 
 # Evidence travels as an opaque byte string ("Evidence blobs are opaque byte strings", draft -00,
@@ -146,14 +166,16 @@ MEDIA = {
 }
 
 
-def initiation_response(freshness_kind: str, handle: bytes | None, server_id: str, mode: str,
+def initiation_response(freshness_kind: str, handle: bytes | None, rrp_id: str, mode: str,
                         expires_in: int | None, acceptable: list[str],
-                        acceptable_evidence: list[str] | None = None) -> dict:
-    r = {"freshness_kind": freshness_kind, "server_id": server_id, "mode": mode}
+                        acceptable_evidence: list[str] | None = None, max_age: int | None = None) -> dict:
+    r = {"freshness_kind": freshness_kind, "rrp_id": rrp_id, "mode": mode}
     if handle is not None:
         r["handle"] = b64u(handle)
     if expires_in is not None:
         r["expires_in"] = expires_in
+    if max_age is not None:
+        r["max_age"] = max_age
     if mode == "enroll":
         r["acceptable_csk"] = acceptable
     else:

@@ -2,8 +2,8 @@
 """Validate the messages of a run (evidence/<stamp>/vectors.json) against the CDDL of the draft
 (cddl/tacra-est.cddl), with the `cddl` tool (Ruby gem, Carsten Bormann). JSON members that are
 `bstr` in the CDDL carry unpadded base64url, as the draft says; they are decoded and the message
-is validated as CBOR. Two negative controls must fail: a request without `target`, and Evidence
-given as a map instead of a byte string.
+is validated as CBOR. Three negative controls must fail: a request without `target`, Evidence
+given as a map instead of a byte string, and a binding method other than `binding-input`.
 
     gem install cddl && pip install cbor2
     python3 scripts/validate_cddl.py evidence/<stamp>/vectors.json
@@ -38,7 +38,11 @@ def main(path):
     spec = open(os.path.join(here, "..", "cddl", "tacra-est.cddl")).read()
     v = json.load(open(path))
     cases = [("attestation-initiation-response", v["enrollment"]["AttestationInitiationResponse"]),
-             ("attested-enrollment-request", v["enrollment"]["AttestedEnrollmentRequest"]),
+             ("attested-enrollment-request", v["enrollment"]["AttestedEnrollmentRequest"])]
+    if "enrollment_absent_timestamp" in v:
+        cases += [("attestation-initiation-response", v["enrollment_absent_timestamp"]["AttestationInitiationResponse"]),
+                  ("attested-enrollment-request", v["enrollment_absent_timestamp"]["AttestedEnrollmentRequest"])]
+    cases += [
              ("attestation-initiation-response", v["retrieval"]["AttestationInitiationResponse"]),
              ("attested-retrieval-request", v["retrieval"]["AttestedRetrievalRequest"]),
              ("encrypted-credential-bundle", v["retrieval"]["EncryptedCredentialBundle"])]
@@ -50,9 +54,12 @@ def main(path):
     n1 = not validate(spec, "attested-enrollment-request", to_cbor(bad))
     bad2 = to_cbor(dict(v["enrollment"]["AttestedEnrollmentRequest"])); bad2["evidence"] = {"type": "x"}
     n2 = not validate(spec, "attested-enrollment-request", bad2)
+    bad3 = to_cbor(dict(v["enrollment"]["AttestedEnrollmentRequest"])); bad3["binding"] = {"method": "csr-hash", "hash": "sha256"}
+    n3 = not validate(spec, "attested-enrollment-request", bad3)
     print("negative, request without target:   %s" % ("refused" if n1 else "ACCEPTED (error)"))
     print("negative, evidence as a map:        %s" % ("refused" if n2 else "ACCEPTED (error)"))
-    sys.exit(0 if (ok and n1 and n2) else 1)
+    print("negative, binding other than binding-input: %s" % ("refused" if n3 else "ACCEPTED (error)"))
+    sys.exit(0 if (ok and n1 and n2 and n3) else 1)
 
 
 if __name__ == "__main__":
