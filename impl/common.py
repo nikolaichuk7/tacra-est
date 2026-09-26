@@ -33,26 +33,47 @@ def canonical_json(obj) -> bytes:
 # ---------------------------------------------------------------------------------------------
 # The binding input (pull request, "Binding Input"):
 #
-#   binding_input = len32(handle) || handle || len32(server_id) || server_id || len32(subject) || subject
+#   binding_input = len32(handle)    || handle
+#                || len32(server_id) || server_id
+#                || len32(target)    || target
+#                || len32(subject)   || subject
 #
-# handle: the Freshness Handle, empty for absent-* kinds; server_id: UTF-8 of the server_id string;
-# subject: DER of the CSR (Enrollment) or DER SubjectPublicKeyInfo of CEKpub (Retrieval).
-# The digest is SHA-512 where the platform field is 64 octets.
+# handle: the Freshness Handle, empty for absent-* kinds; server_id: UTF-8 of the server_id string
+# (the EST Server the Attester's Credential Acquisition Interface is configured to use for the
+# Target); target: UTF-8 of the Target, the RATS-unaware Relying Party for which the Attester seeks
+# credentials (TACRA Section 2); subject: DER of the CSR (Enrollment) or DER SubjectPublicKeyInfo
+# of CEKpub (Retrieval). The digest is SHA-512 where the platform field is 64 octets.
 
 def len32(b: bytes) -> bytes:
     return struct.pack(">I", len(b))
 
 
-def binding_input(handle: bytes, server_id: str, subject: bytes) -> bytes:
+def binding_input(handle: bytes, server_id: str, target: str, subject: bytes) -> bytes:
     sid = server_id.encode("utf-8")
-    return len32(handle) + handle + len32(sid) + sid + len32(subject) + subject
+    tgt = target.encode("utf-8")
+    return len32(handle) + handle + len32(sid) + sid + len32(tgt) + tgt + len32(subject) + subject
 
 
 HASHES = {"sha512": hashlib.sha512, "sha384": hashlib.sha384, "sha256": hashlib.sha256}
 
 
-def binding_value(handle: bytes, server_id: str, subject: bytes, hash_name: str = "sha512") -> bytes:
-    return HASHES[hash_name](binding_input(handle, server_id, subject)).digest()
+def binding_value(handle: bytes, server_id: str, target: str, subject: bytes, hash_name: str = "sha512") -> bytes:
+    return HASHES[hash_name](binding_input(handle, server_id, target, subject)).digest()
+
+
+# Evidence travels as an opaque byte string ("Evidence blobs are opaque byte strings", draft -00,
+# Media Types); `profile` names its format. The reference implementation's two profiles carry the
+# JSON object the Attesting Environment produced.
+PROFILE_SNP = "urn:tacra-est:evidence:sev-snp-json:1"
+PROFILE_MOCK = "urn:tacra-est:evidence:mock-json:1"
+
+
+def encode_evidence(ev: dict) -> bytes:
+    return canonical_json(ev)
+
+
+def decode_evidence(b: bytes) -> dict:
+    return json.loads(b)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -126,7 +147,8 @@ MEDIA = {
 
 
 def initiation_response(freshness_kind: str, handle: bytes | None, server_id: str, mode: str,
-                        expires_in: int | None, acceptable: list[str]) -> dict:
+                        expires_in: int | None, acceptable: list[str],
+                        acceptable_evidence: list[str] | None = None) -> dict:
     r = {"freshness_kind": freshness_kind, "server_id": server_id, "mode": mode}
     if handle is not None:
         r["handle"] = b64u(handle)
@@ -136,28 +158,36 @@ def initiation_response(freshness_kind: str, handle: bytes | None, server_id: st
         r["acceptable_csk"] = acceptable
     else:
         r["acceptable_cek"] = acceptable
+    if acceptable_evidence:
+        r["acceptable_evidence"] = acceptable_evidence
     return r
 
 
-def enrollment_request(handle: bytes | None, csr_der: bytes, evidence: dict, hash_name: str,
+def _request(freshness_kind: str, target: str, credential_type: str, handle: bytes | None,
+             evidence: bytes, profile: str, hash_name: str, credential_hint: str | None) -> dict:
+    r = {"freshness_kind": freshness_kind, "target": target, "credential_type": credential_type,
+         "evidence": b64u(evidence), "profile": profile,
+         "binding": {"method": "binding-input", "hash": hash_name}}
+    if handle:
+        r["handle"] = b64u(handle)
+    if credential_hint:
+        r["credential_hint"] = credential_hint
+    return r
+
+
+def enrollment_request(freshness_kind: str, target: str, credential_type: str, handle: bytes | None,
+                       csr_der: bytes, evidence: bytes, profile: str, hash_name: str,
                        credential_hint: str | None = None) -> dict:
-    r = {"csr": b64u(csr_der), "evidence": evidence,
-         "binding": {"method": "binding-input", "hash": hash_name}}
-    if handle is not None:
-        r["handle"] = b64u(handle)
-    if credential_hint:
-        r["credential_hint"] = credential_hint
+    r = _request(freshness_kind, target, credential_type, handle, evidence, profile, hash_name, credential_hint)
+    r["csr"] = b64u(csr_der)
     return r
 
 
-def retrieval_request(handle: bytes | None, cek_spki_der: bytes, evidence: dict, hash_name: str,
+def retrieval_request(freshness_kind: str, target: str, credential_type: str, handle: bytes | None,
+                      cek_spki_der: bytes, evidence: bytes, profile: str, hash_name: str,
                       credential_hint: str | None = None) -> dict:
-    r = {"cek_pub": b64u(cek_spki_der), "evidence": evidence,
-         "binding": {"method": "binding-input", "hash": hash_name}}
-    if handle is not None:
-        r["handle"] = b64u(handle)
-    if credential_hint:
-        r["credential_hint"] = credential_hint
+    r = _request(freshness_kind, target, credential_type, handle, evidence, profile, hash_name, credential_hint)
+    r["cek_pub"] = b64u(cek_spki_der)
     return r
 
 

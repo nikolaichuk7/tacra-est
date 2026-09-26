@@ -26,7 +26,7 @@ from cryptography.hazmat.primitives.serialization import pkcs7
 
 from attester import Attester, AttesterError
 from common import b64u, b64u_dec, canonical_json, utc_stamp, write_json
-from conduit import Conduit, EvilConduit, ServerEndpoint
+from conduit import Conduit, EvilConduit, ServerEndpoint, TargetSwapConduit
 from est_server import CredentialAuthority, SecretVault, ServerState, start_server
 from tee import MockTEE, SnpGuestTEE
 from verifier import Verifier
@@ -34,6 +34,10 @@ from verifier import Verifier
 S1_ID = "https://s1.tacra.example"
 S2_ID = "https://s2.tacra.example"
 HINT = "workload.tacra.example"
+TARGET_A = "https://db.tacra.example"          # the Target the Attester seeks credentials for
+TARGET_B = "https://payments.tacra.example"    # another Target the same servers provision
+CTYPE = "x509"
+TARGETS = {TARGET_A: {CTYPE}, TARGET_B: {CTYPE}}
 
 
 def parse_pkcs7_certs(b64_body: bytes) -> list[x509.Certificate]:
@@ -46,17 +50,18 @@ def build_servers(tee_kind: str, mock_root: str | None, pinned_ark: bytes | None
     for name, sid, legacy in (("S1", S1_ID, False), ("S2", S2_ID, False), ("S1-legacy", S1_ID, True), ("S2-legacy", S2_ID, True)):
         st = ServerState(sid, Verifier(pinned_ark_pem=pinned_ark, allowed_measurements=allowed, mock_root_pem=mock_root),
                          CredentialAuthority("TACRA reference CA %s" % name, {HINT}), SecretVault(),
-                         legacy_binding=legacy, bundle_auth_mode=True, log_path=os.path.join(out, "server-%s.jsonl" % name))
+                         legacy_binding=legacy, bundle_auth_mode=True, log_path=os.path.join(out, "server-%s.jsonl" % name),
+                         targets=TARGETS)
         srv, port, cert_path = start_server(st)
         servers[name] = {"state": st, "port": port, "cert": cert_path, "endpoint": ServerEndpoint("127.0.0.1", port, cert_path)}
     return servers
 
 
-def drill_enroll(tee, target_id, conduit, vault_origin=None, legacy=False):
-    a = Attester(tee, target_id, vault_origin_spki_der=vault_origin, legacy_binding=legacy)
-    rec = {"target": target_id, "legacy_binding": legacy}
+def drill_enroll(tee, server_id, conduit, vault_origin=None, legacy=False, target=TARGET_A):
+    a = Attester(tee, server_id, target, CTYPE, vault_origin_spki_der=vault_origin, legacy_binding=legacy)
+    rec = {"server_id": server_id, "target": target, "legacy_binding": legacy}
     try:
-        init = conduit.initiate("enroll")
+        init = conduit.initiate("enroll", **a.initiation_params())
         rec["initiation_response"] = init
         a.accept_initiation(init)
         req = a.make_enrollment_request(HINT)
@@ -68,10 +73,13 @@ def drill_enroll(tee, target_id, conduit, vault_origin=None, legacy=False):
         if st == 200:
             certs = parse_pkcs7_certs(body)
             cert = a.accept_certificate(certs[0].public_bytes(serialization.Encoding.DER))
+            ext = [e for e in cert.extensions if e.oid.dotted_string == "1.3.6.1.4.1.99999.1"]
+            issued_for = json.loads(ext[0].value.value).get("target") if ext else None
             rec["certificate"] = {"subject": cert.subject.rfc4514_string(), "issuer": cert.issuer.rfc4514_string(),
+                                  "issued_for_target": issued_for,
                                   "serial": hex(cert.serial_number), "der": b64u(cert.public_bytes(serialization.Encoding.DER))}
             rec["response_pkcs7_b64"] = body.decode("ascii")
-            rec["outcome"] = "issued by %s" % cert.issuer.rfc4514_string()
+            rec["outcome"] = "issued by %s for target %s" % (cert.issuer.rfc4514_string(), issued_for)
         else:
             rec["error"] = body
             rec["outcome"] = "refused: %s" % (body.get("error") if isinstance(body, dict) else body)
@@ -80,11 +88,11 @@ def drill_enroll(tee, target_id, conduit, vault_origin=None, legacy=False):
     return rec, a
 
 
-def drill_retrieve(tee, target_id, conduit, vault_origin, legacy_bundle=False, forge=None):
-    a = Attester(tee, target_id, vault_origin_spki_der=vault_origin, legacy_bundle_base_mode=legacy_bundle)
-    rec = {"target": target_id, "legacy_bundle_base_mode": legacy_bundle, "forged_bundle": forge is not None}
+def drill_retrieve(tee, server_id, conduit, vault_origin, legacy_bundle=False, forge=None, target=TARGET_A):
+    a = Attester(tee, server_id, target, CTYPE, vault_origin_spki_der=vault_origin, legacy_bundle_base_mode=legacy_bundle)
+    rec = {"server_id": server_id, "target": target, "legacy_bundle_base_mode": legacy_bundle, "forged_bundle": forge is not None}
     try:
-        init = conduit.initiate("retrieve")
+        init = conduit.initiate("retrieve", **a.initiation_params())
         rec["initiation_response"] = init
         a.accept_initiation(init)
         req = a.make_retrieval_request(HINT)
@@ -100,7 +108,7 @@ def drill_retrieve(tee, target_id, conduit, vault_origin, legacy_bundle=False, f
         bundle = body
         if forge is not None:
             # the conduit hands the Attester a bundle it made itself, instead of the Vault's
-            bundle = forge(a.cek_spki_der, target_id, a.handle, HINT, body["aad"]["group_id"])
+            bundle = forge(a.cek_spki_der, server_id, a.handle, HINT, body["aad"]["group_id"], target)
         rec["bundle"] = bundle
         try:
             items = a.accept_bundle(bundle, expected_group_id=body["aad"]["group_id"])
@@ -168,15 +176,15 @@ def main():
     D["D4_server_substitution_draft00"], _ = drill_enroll(tee, S1_ID, EvilConduit(S2L["endpoint"], pretend_server_id=S1_ID), legacy=True)
     # D5 bundle substitution against the PR text: forged base-mode bundle, Attester in auth mode
     attacker_vault = SecretVault()   # the attacker's own key; it never signs as S1's Vault
-    def forge(cek, sid, handle, hint, gid):
+    def forge(cek, sid, handle, hint, gid, target=TARGET_A):
         items = {"credential_items": [{"type": "shared-signing-key", "format": "PKCS8-PEM",
                  "value": attacker_vault.signing_key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                                                                     serialization.NoEncryption()).decode()}], "metadata": {"note": "attacker"}}
-        return EvilConduit.forge_bundle(cek, sid, handle, hint, gid, items)
+        return EvilConduit.forge_bundle(cek, sid, handle, hint, gid, items, target)
     D["D5_bundle_substitution_pr_text"], _ = drill_retrieve(tee, S1_ID, Conduit(S1["endpoint"]), vault1, forge=forge)
     # D5b the forged bundle claims to be hpke-auth and is sealed with the attacker's own sender key
-    def forge_auth(cek, sid, handle, hint, gid):
-        b = forge(cek, sid, handle, hint, gid)
+    def forge_auth(cek, sid, handle, hint, gid, target=TARGET_A):
+        b = forge(cek, sid, handle, hint, gid, target)
         from cryptography.hazmat.primitives import serialization as _ser
         from pyhpke import KEMKey as _K
         pkr = _K.from_pyca_cryptography_key(_ser.load_der_public_key(cek))
@@ -198,6 +206,10 @@ def main():
     rec, att = drill_enroll(tee, S1_ID, c)
     st, ct, body = c.enroll(rec["enrollment_request"])
     D["D7_handle_replay"] = {"first": rec["outcome"], "second_status": st, "second_error": body if isinstance(body, dict) else None}
+    # D9 target substitution against the PR text: the conduit initiates for TARGET_B at the intended server
+    D["D9_target_substitution_pr_text"], _ = drill_enroll(tee, S1_ID, TargetSwapConduit(S1["endpoint"], TARGET_B))
+    # D10 the same against the -00 binding (neither server nor Target bound): reproduces the vulnerability
+    D["D10_target_substitution_draft00"], _ = drill_enroll(tee, S1_ID, TargetSwapConduit(S1L["endpoint"], TARGET_B), legacy=True)
     # D8 burst (hardware)
     if a.burst:
         D["D8_report_burst"] = burst(tee, a.burst)
@@ -207,9 +219,10 @@ def main():
     r = D["D2_retrieve_honest"].get("retrieval_request", {})
     drills["sizes_bytes"] = {
         "enrollment_request_json": len(canonical_json(e)) if e else None,
-        "evidence_report": len(b64u_dec(e["evidence"]["report"])) if e else None,
-        "evidence_certs_total": sum(len(b64u_dec(v)) for v in e["evidence"].get("certs", {}).values()) if e else None,
-        "evidence_chain_pem": len(e["evidence"].get("chain", "")) if e else None,
+        "evidence_bytes": len(b64u_dec(e["evidence"])) if e else None,
+        "evidence_report": len(b64u_dec(json.loads(b64u_dec(e["evidence"]))["report"])) if e else None,
+        "evidence_certs_total": sum(len(b64u_dec(v)) for v in json.loads(b64u_dec(e["evidence"])).get("certs", {}).values()) if e else None,
+        "evidence_chain_pem": len(json.loads(b64u_dec(e["evidence"])).get("chain", "")) if e else None,
         "retrieval_request_json": len(canonical_json(r)) if r else None,
         "bundle_json": len(canonical_json(D["D2_retrieve_honest"].get("bundle", {}))),
     }
@@ -220,20 +233,23 @@ def main():
 
     # test vectors from the honest exchanges
     vectors = {"stamp": stamp, "tee": a.tee,
-               "enrollment": {"AttestationInitiationResponse": D["D1_enroll_honest"].get("initiation_response"),
+               "enrollment": {"attest_initiate_query": {"mode": "enroll", "target": TARGET_A, "credential_type": CTYPE},
+                              "AttestationInitiationResponse": D["D1_enroll_honest"].get("initiation_response"),
                               "AttestedEnrollmentRequest": D["D1_enroll_honest"].get("enrollment_request"),
                               "response_pkcs7_base64": D["D1_enroll_honest"].get("response_pkcs7_b64")},
-               "retrieval": {"AttestationInitiationResponse": D["D2_retrieve_honest"].get("initiation_response"),
+               "retrieval": {"attest_initiate_query": {"mode": "retrieve", "target": TARGET_A, "credential_type": CTYPE},
+                             "AttestationInitiationResponse": D["D2_retrieve_honest"].get("initiation_response"),
                              "AttestedRetrievalRequest": D["D2_retrieve_honest"].get("retrieval_request"),
                              "EncryptedCredentialBundle": D["D2_retrieve_honest"].get("bundle"),
                              "vault_origin_spki_der": b64u(vault1)}}
     write_json(os.path.join(a.out, "vectors.json"), vectors)
     # raw hardware evidence as files
     if a.tee == "sev-snp" and e:
-        open(os.path.join(a.out, "D1-report.bin"), "wb").write(b64u_dec(e["evidence"]["report"]))
-        for k, v in e["evidence"].get("certs", {}).items():
+        ev = json.loads(b64u_dec(e["evidence"]))
+        open(os.path.join(a.out, "D1-report.bin"), "wb").write(b64u_dec(ev["report"]))
+        for k, v in ev.get("certs", {}).items():
             open(os.path.join(a.out, "D1-cert-%s.bin" % k), "wb").write(b64u_dec(v))
-        open(os.path.join(a.out, "D1-kds-chain.pem"), "w").write(e["evidence"].get("chain", ""))
+        open(os.path.join(a.out, "D1-kds-chain.pem"), "w").write(ev.get("chain", ""))
 
     print(json.dumps({k: v.get("outcome", v) if isinstance(v, dict) else v for k, v in D.items()}, indent=1, default=str)[:4000])
     print("sizes:", drills["sizes_bytes"])

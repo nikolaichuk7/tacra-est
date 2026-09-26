@@ -8,7 +8,7 @@ import json
 import statistics
 import sys
 
-TEXT = {"D1": "PR", "D2": "PR", "D3": "PR", "D4": "-00", "D5": "PR", "D5b": "PR", "D6": "-00", "D7": "PR"}
+TEXT = {"D1": "PR", "D2": "PR", "D3": "PR", "D4": "-00", "D5": "PR", "D5b": "PR", "D6": "-00", "D7": "PR", "D9": "PR", "D10": "-00"}
 LABEL = {
     "D1_enroll_honest": "D1 honest enrollment at S1",
     "D2_retrieve_honest": "D2 honest retrieval at S1",
@@ -18,6 +18,8 @@ LABEL = {
     "D5b_bundle_substitution_forged_auth_pr_text": "D5b bundle substitution, forged hpke-auth under the attacker's key",
     "D6_bundle_substitution_draft00": "D6 bundle substitution",
     "D7_handle_replay": "D7 Handle replay",
+    "D9_target_substitution_pr_text": "D9 target substitution (conduit initiates for another Target)",
+    "D10_target_substitution_draft00": "D10 target substitution",
 }
 
 
@@ -27,7 +29,11 @@ def main(path):
     print("Run %s, TEE %s, host %s\n" % (d["stamp"], d["tee"], d.get("host")))
     print("| drill | text | outcome | evidence ms | round trip ms |")
     print("|---|---|---|---|---|")
-    for k, v in D.items():
+    import re
+    def order(k):
+        m = re.match(r"D(\d+)(b?)_", k)
+        return (int(m.group(1)), m.group(2)) if m else (999, k)
+    for k, v in sorted(D.items(), key=lambda kv: order(kv[0])):
         if k.startswith("D8"):
             continue
         short = k.split("_")[0]
@@ -51,10 +57,6 @@ def main(path):
     if b:
         print("\nBurst: n=%d, median %.2f ms, p95 %.2f ms, max %.1f ms, total %.1f s; slow (>1 s): %s" % (
             b["n"], b["median_ms"], b["p95_ms"], b["max_ms"], b["total_s"], [(s["index"], s["ms"]) for s in b["slow_reports"]]))
-    e = D.get("D1_enroll_honest", {})
-    ev = (e.get("enrollment_request") or {}).get("evidence") or {}
-    if ev.get("type") == "sev-snp":
-        from common import b64u_dec, parse_snp_report  # noqa
     log1 = [x for x in d.get("server_logs", {}).get("S1", []) if x.get("outcome") == 200]
     if log1:
         x = log1[0]

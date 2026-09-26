@@ -4,9 +4,17 @@ Attesting Environment, and performs the Attester-side checks the pull request ad
 The Attester never talks to the network itself; it hands messages to a conduit (the EST Client)
 and receives responses from it, exactly as the draft's Figure 1 has it. Everything the conduit
 returns is treated as untrusted input.
+
+Two identities are kept apart, as TACRA keeps them apart:
+  target     the Target: the RATS-unaware Relying Party for which the Attester seeks credentials
+             (TACRA Section 2), e.g. a database the workload will authenticate to;
+  server_id  the EST Server the Attester's Credential Acquisition Interface is configured to use for
+             that Target (TACRA Design Goal 5: mechanisms per Target).
+Both go into the binding input, so the conduit can change neither.
 """
 import hashlib
 import json
+import time
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -14,7 +22,8 @@ from cryptography.hazmat.primitives.asymmetric import ec, x25519
 from cryptography.x509.oid import NameOID
 from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey
 
-from common import b64u, b64u_dec, binding_value, canonical_json, enrollment_request, retrieval_request
+from common import (PROFILE_MOCK, PROFILE_SNP, b64u_dec, binding_value, canonical_json,
+                    encode_evidence, enrollment_request, retrieval_request)
 
 SUITE = CipherSuite.new(KEMId.DHKEM_X25519_HKDF_SHA256, KDFId.HKDF_SHA256, AEADId.AES256_GCM)
 
@@ -32,29 +41,19 @@ def hpke_info(server_id: str, handle: bytes | None) -> bytes:
 
 
 class Attester:
-    def __init__(self, tee, target_server_id: str, vault_origin_spki_der: bytes | None = None,
-                 hash_name: str = "sha512", subject_cn: str = "workload.tacra.example",
+    def __init__(self, tee, server_id: str, target: str, credential_type: str,
+                 vault_origin_spki_der: bytes | None = None, hash_name: str = "sha512",
+                 subject_cn: str = "workload.tacra.example",
                  legacy_bundle_base_mode: bool = False, legacy_binding: bool = False):
         self.tee = tee
-        self.target = target_server_id
+        self.server_id = server_id              # configured for this Target in the Attester's CAI
+        self.target = target                    # TACRA Target
+        self.credential_type = credential_type
         self.vault_origin_spki_der = vault_origin_spki_der
         self.hash_name = hash_name
         self.subject_cn = subject_cn
-        self.legacy_bundle_base_mode = legacy_bundle_base_mode   # the -00 behaviour, for the attack drill
-        self.legacy_binding = legacy_binding                     # the -00 binding H(handle || subject), no server_id
-        self.evidence_ms: float | None = None
-
-    def _binding(self, subject: bytes) -> bytes:
-        if self.legacy_binding:
-            return hashlib.sha512((self.handle or b"") + subject).digest()
-        return binding_value(self.handle, self.target, subject, self.hash_name)
-
-    def _evidence(self, bv: bytes) -> dict:
-        import time
-        t0 = time.monotonic()
-        ev = self.tee.report(bv)
-        self.evidence_ms = (time.monotonic() - t0) * 1000.0
-        return ev
+        self.legacy_bundle_base_mode = legacy_bundle_base_mode   # -00 behaviour, for the attack drills
+        self.legacy_binding = legacy_binding                     # -00 binding H(handle || subject)
         self.handle: bytes | None = None
         self.freshness_kind: str | None = None
         self.mode: str | None = None
@@ -63,14 +62,33 @@ class Attester:
         self.csr_der: bytes | None = None
         self.cek_spki_der: bytes | None = None
         self.credential_hint: str | None = None
+        self.evidence_ms: float | None = None
+
+    def initiation_params(self) -> dict:
+        """What the Attester asks the conduit to send in attest-initiate (TACRA Section 5.1)."""
+        return {"target": self.target, "credential_type": self.credential_type}
+
+    def _binding(self, subject: bytes) -> bytes:
+        if self.legacy_binding:
+            return hashlib.sha512((self.handle or b"") + subject).digest()
+        return binding_value(self.handle, self.server_id, self.target, subject, self.hash_name)
+
+    def _evidence(self, bv: bytes) -> tuple[bytes, str]:
+        t0 = time.monotonic()
+        ev = self.tee.report(bv)
+        self.evidence_ms = (time.monotonic() - t0) * 1000.0
+        profile = PROFILE_SNP if ev.get("type") == "sev-snp" else PROFILE_MOCK
+        return encode_evidence(ev), profile
 
     # -- first leg ---------------------------------------------------------------------------
     def accept_initiation(self, response: dict) -> None:
         """AttestationInitiationResponse, as delivered by the conduit. The Attester compares
-        server_id with the Target it named and stops if they differ (pull request, 8.1)."""
+        server_id with the EST Server it is configured to use for its Target and stops if they
+        differ."""
         sid = response.get("server_id")
-        if sid != self.target:
-            raise AttesterError("server_id %r is not the Target %r I named; not producing Evidence" % (sid, self.target))
+        if sid != self.server_id:
+            raise AttesterError("server_id %r is not the EST Server %r configured for Target %r; not producing Evidence"
+                                % (sid, self.server_id, self.target))
         kind = response.get("freshness_kind")
         if kind in ("present-nonce", "present-epoch"):
             if "handle" not in response:
@@ -96,8 +114,9 @@ class Attester:
                .sign(self.csk, hashes.SHA256()))
         self.csr_der = csr.public_bytes(serialization.Encoding.DER)
         self.credential_hint = credential_hint
-        evidence = self._evidence(self._binding(self.csr_der))
-        return enrollment_request(self.handle or None, self.csr_der, evidence, self.hash_name, credential_hint)
+        evidence, profile = self._evidence(self._binding(self.csr_der))
+        return enrollment_request(self.freshness_kind, self.target, self.credential_type, self.handle or None,
+                                  self.csr_der, evidence, profile, self.hash_name, credential_hint)
 
     def accept_certificate(self, cert_der: bytes) -> x509.Certificate:
         cert = x509.load_der_x509_certificate(cert_der)
@@ -113,22 +132,25 @@ class Attester:
         self.cek = x25519.X25519PrivateKey.generate()
         self.cek_spki_der = self.cek.public_key().public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)
         self.credential_hint = credential_hint
-        evidence = self._evidence(self._binding(self.cek_spki_der))
-        return retrieval_request(self.handle or None, self.cek_spki_der, evidence, self.hash_name, credential_hint)
+        evidence, profile = self._evidence(self._binding(self.cek_spki_der))
+        return retrieval_request(self.freshness_kind, self.target, self.credential_type, self.handle or None,
+                                 self.cek_spki_der, evidence, profile, self.hash_name, credential_hint)
 
     def accept_bundle(self, bundle: dict, expected_group_id: str | None = None) -> dict:
-        """Attester Processing (pull request, 9.2.6): origin, server_id and handle in the associated
-        data, then decrypt and check group_id and credential_hint. Raises on any failure."""
+        """Attester Processing (pull request, 9.2.6): origin, then server_id, target and handle in
+        the associated data, then decrypt and check group_id and credential_hint."""
         aad = bundle.get("aad") or {}
-        if aad.get("server_id") != self.target:
-            raise AttesterError("bundle server_id %r is not my Target %r" % (aad.get("server_id"), self.target))
+        if aad.get("server_id") != self.server_id:
+            raise AttesterError("bundle server_id %r is not my EST Server %r" % (aad.get("server_id"), self.server_id))
+        if aad.get("target") != self.target:
+            raise AttesterError("bundle target %r is not my Target %r" % (aad.get("target"), self.target))
         h = b64u_dec(aad["handle"]) if aad.get("handle") else b""
         if h != (self.handle or b""):
             raise AttesterError("bundle handle differs from the Handle I embedded")
         if (aad.get("credential_hint") or None) != (self.credential_hint or None):
             raise AttesterError("bundle credential_hint differs from the one I requested")
         aad_bytes = canonical_json(aad)
-        info = hpke_info(self.target, self.handle)
+        info = hpke_info(self.server_id, self.handle)
         skr = KEMKey.from_pyca_cryptography_key(self.cek)
         enc = b64u_dec(bundle["enc"])
         ct = b64u_dec(bundle["ciphertext"])

@@ -53,8 +53,10 @@ class Conduit:
         self.ep = endpoint
         self.timings: dict[str, float] = {}
 
-    def initiate(self, mode: str) -> dict:
-        st, ct, body, ms = self.ep.request("GET", "/.well-known/est/attest-initiate?mode=%s" % mode)
+    def initiate(self, mode: str, target: str, credential_type: str) -> dict:
+        from urllib.parse import urlencode
+        q = urlencode({"mode": mode, "target": target, "credential_type": credential_type})
+        st, ct, body, ms = self.ep.request("GET", "/.well-known/est/attest-initiate?" + q)
         self.timings["initiate_ms"] = ms
         if st != 200:
             raise RuntimeError("attest-initiate %d: %s" % (st, body))
@@ -80,18 +82,18 @@ class EvilConduit(Conduit):
         super().__init__(endpoint)
         self.pretend = pretend_server_id
 
-    def initiate(self, mode: str) -> dict:
-        body = super().initiate(mode)
+    def initiate(self, mode: str, target: str, credential_type: str) -> dict:
+        body = super().initiate(mode, target, credential_type)
         body = dict(body)
         body["server_id"] = self.pretend     # the lie: the Attester sees the server it intended
         return body
 
     @staticmethod
     def forge_bundle(cek_spki_der: bytes, server_id: str, handle: bytes, credential_hint: str | None,
-                     group_id: str, attacker_items: dict) -> dict:
+                     group_id: str, attacker_items: dict, target: str = "") -> dict:
         """Bundle substitution: a well-formed container encrypted to CEKpub in base mode, made by
         someone who has only seen CEKpub in the Evidence. No Vault key is involved."""
-        aad = {"group_id": group_id, "server_id": server_id, "credential_hint": credential_hint}
+        aad = {"group_id": group_id, "server_id": server_id, "target": target, "credential_hint": credential_hint}
         if handle:
             aad["handle"] = b64u(handle)
         pkr = KEMKey.from_pyca_cryptography_key(serialization.load_der_public_key(cek_spki_der))
@@ -99,3 +101,22 @@ class EvilConduit(Conduit):
         ct = ctx.seal(canonical_json(attacker_items), aad=canonical_json(aad))
         return {"container": "hpke-base", "suite": {"kem": "DHKEM(X25519, HKDF-SHA256)", "kdf": "HKDF-SHA256", "aead": "AES-256-GCM"},
                 "enc": b64u(enc), "ciphertext": b64u(ct), "aad": aad, "sender_pub": None}
+
+
+class TargetSwapConduit(Conduit):
+    """Target substitution: the conduit initiates for a Target of its choosing instead of the one the
+    Attester named, and presents the Attester's request under that Target. The server is the one
+    the Attester intended, so server_id is genuine."""
+
+    def __init__(self, endpoint: ServerEndpoint, substitute_target: str):
+        super().__init__(endpoint)
+        self.substitute = substitute_target
+
+    def initiate(self, mode: str, target: str, credential_type: str) -> dict:
+        return super().initiate(mode, self.substitute, credential_type)
+
+    def enroll(self, req: dict):
+        return super().enroll(dict(req, target=self.substitute))
+
+    def retrieve(self, req: dict):
+        return super().retrieve(dict(req, target=self.substitute))

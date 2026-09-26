@@ -35,8 +35,8 @@ from cryptography.hazmat.primitives.serialization import pkcs7
 from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey
 
-from common import (MEDIA, b64u, b64u_dec, binding_value, canonical_json, error_body,
-                    initiation_response, now_ms, write_json)
+from common import (MEDIA, PROFILE_MOCK, PROFILE_SNP, b64u, b64u_dec, binding_value, canonical_json,
+                    decode_evidence, error_body, initiation_response, now_ms, write_json)
 from verifier import Verifier
 from attester import hpke_info
 
@@ -58,7 +58,7 @@ class CredentialAuthority:
                      .sign(self.key, hashes.SHA256()))
         self.allowed_sans = allowed_sans
 
-    def issue(self, csr_der: bytes, results: dict, credential_hint: str | None) -> x509.Certificate:
+    def issue(self, csr_der: bytes, results: dict, credential_hint: str | None, target: str = "") -> x509.Certificate:
         csr = x509.load_der_x509_csr(csr_der)
         if not csr.is_signature_valid:
             raise ValueError("CSR proof of possession failed")
@@ -72,7 +72,7 @@ class CredentialAuthority:
                 .add_extension(x509.SubjectAlternativeName([x509.DNSName(san)]), critical=False)
                 .add_extension(x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH]), critical=False)
                 .add_extension(x509.UnrecognizedExtension(x509.ObjectIdentifier("1.3.6.1.4.1.99999.1"),
-                               canonical_json({"measurement": results.get("measurement"), "platform": results.get("platform"),
+                               canonical_json({"target": target, "measurement": results.get("measurement"), "platform": results.get("platform"),
                                                "platform_form": results.get("platform_form"), "report_id": results.get("report_id")})),
                                critical=False)
                 .sign(self.key, hashes.SHA256()))
@@ -94,7 +94,7 @@ class SecretVault:
         subject = (results.get("measurement") or "") + "|" + (results.get("platform") or "")
         return hashlib.sha256((subject + "|" + (credential_hint or "") + "|" + self.policy_version).encode()).hexdigest()
 
-    def release(self, cek_spki_der: bytes, results: dict, handle: bytes, server_id: str,
+    def release(self, cek_spki_der: bytes, results: dict, handle: bytes, server_id: str, target: str,
                 credential_hint: str | None, auth_mode: bool = True) -> dict:
         gid = self.group_id(results, credential_hint)
         items = {"credential_items": [
@@ -102,7 +102,7 @@ class SecretVault:
              "value": self.signing_key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                                                      serialization.NoEncryption()).decode("ascii")}],
             "metadata": {"validity_seconds": 3600, "rotation_epoch": 1}}
-        aad = {"group_id": gid, "server_id": server_id, "credential_hint": credential_hint}
+        aad = {"group_id": gid, "server_id": server_id, "target": target, "credential_hint": credential_hint}
         if handle:
             aad["handle"] = b64u(handle)
         aad_bytes = canonical_json(aad)
@@ -127,8 +127,11 @@ class SecretVault:
 class ServerState:
     def __init__(self, server_id: str, verifier: Verifier, ca: CredentialAuthority, vault: SecretVault,
                  expires_in: int = 300, hash_name: str = "sha512", legacy_binding: bool = False,
-                 bundle_auth_mode: bool = True, log_path: str | None = None):
+                 bundle_auth_mode: bool = True, log_path: str | None = None,
+                 targets: dict[str, set[str]] | None = None):
         self.server_id = server_id
+        # Target -> the Credential Types this server provisions for it (TACRA Sections 5.1-5.3)
+        self.targets = targets or {}
         self.verifier = verifier
         self.ca = ca
         self.vault = vault
@@ -137,7 +140,7 @@ class ServerState:
         self.legacy_binding = legacy_binding
         self.bundle_auth_mode = bundle_auth_mode
         self.handles: dict[bytes, dict] = {}
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()   # record() is also called while the lock is held
         self.log_path = log_path
         self.log: list[dict] = []
 
@@ -149,12 +152,12 @@ class ServerState:
                 with open(self.log_path, "a") as f:
                     f.write(json.dumps(entry, sort_keys=True, default=str) + "\n")
 
-    def expected_binding(self, handle: bytes, subject: bytes) -> bytes:
+    def expected_binding(self, handle: bytes, target: str, subject: bytes) -> bytes:
         if self.legacy_binding:
-            # draft -00 shape (and the TACRA PR before this change): H(handle || subject), no server identity
+            # draft -00 shape: H(handle || subject); neither the server nor the Target is bound
             import hashlib as _h
             return _h.sha512(handle + subject).digest()
-        return binding_value(handle, self.server_id, subject, self.hash_name)
+        return binding_value(handle, self.server_id, target, subject, self.hash_name)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -180,15 +183,25 @@ class Handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         if u.path != "/.well-known/est/attest-initiate":
             return self._error(404, "not-found", "no such resource", "")
-        mode = (parse_qs(u.query).get("mode") or ["enroll"])[0]
+        q = parse_qs(u.query)
+        mode = (q.get("mode") or ["enroll"])[0]
+        target = (q.get("target") or [""])[0]
+        ctype = (q.get("credential_type") or [""])[0]
         if mode not in ("enroll", "retrieve"):
             return self._error(400, "bad-request", "mode must be enroll or retrieve", "")
+        if not target or not ctype:
+            return self._error(400, "bad-request", "target and credential_type are required", "")
+        if target not in st.targets:
+            return self._error(403, "unsupported-target", "target %r is not served here" % target, "")
+        if ctype not in st.targets[target]:
+            return self._error(403, "unsupported-credential-type", "credential type %r is not provisioned for %r" % (ctype, target), "")
         handle = os.urandom(32)
         with st.lock:
-            st.handles[handle] = {"issued": time.time(), "mode": mode, "used": False}
+            st.handles[handle] = {"issued": time.time(), "mode": mode, "used": False, "target": target, "credential_type": ctype}
         acceptable = ["ecdsa-p256-sha256"] if mode == "enroll" else ["DHKEM(X25519,HKDF-SHA256)+HKDF-SHA256+AES-256-GCM"]
-        resp = initiation_response("present-nonce", handle, st.server_id, mode, st.expires_in, acceptable)
-        st.record({"resource": "attest-initiate", "mode": mode, "handle": b64u(handle)})
+        resp = initiation_response("present-nonce", handle, st.server_id, mode, st.expires_in, acceptable,
+                                   acceptable_evidence=[PROFILE_SNP, PROFILE_MOCK])
+        st.record({"resource": "attest-initiate", "mode": mode, "target": target, "credential_type": ctype, "handle": b64u(handle)})
         self._send(200, resp, MEDIA["initiation"])
 
     def do_POST(self):
@@ -206,6 +219,10 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             return self._error(400, "bad-request", "malformed envelope: %s" % e, corr)
         mode = "enroll" if u.path.endswith("attest-enroll") else "retrieve"
+        if req.get("freshness_kind") != "present-nonce":
+            return self._error(400, "bad-request", "freshness_kind must match attest-initiate (present-nonce)", corr)
+        target = req.get("target") or ""
+        ctype = req.get("credential_type") or ""
         # 1. correlate the Handle
         handle = b64u_dec(req["handle"]) if req.get("handle") else b""
         with st.lock:
@@ -225,11 +242,21 @@ class Handler(BaseHTTPRequestHandler):
             if h and h["mode"] != mode:
                 self._error(400, "mode-mismatch", "handle was issued for mode %s" % h["mode"], corr)
                 return
+            if h and (h["target"] != target or h["credential_type"] != ctype):
+                self._error(403, "initiation-mismatch", "target and credential_type must match attest-initiate", corr)
+                st.record({"resource": u.path, "corr": corr, "outcome": 403, "reason": "initiation-mismatch"})
+                return
             if h:
                 h["used"] = True
         # 2. Verifier
         t1 = now_ms()
-        results = st.verifier.appraise(req.get("evidence") or {})
+        if req.get("profile") not in (PROFILE_SNP, PROFILE_MOCK):
+            return self._error(415, "unsupported-evidence", "profile %r not accepted" % req.get("profile"), corr)
+        try:
+            evidence = decode_evidence(b64u_dec(req.get("evidence") or ""))
+        except Exception as e:
+            return self._error(400, "bad-request", "evidence is not a %s object: %s" % (req.get("profile"), e), corr)
+        results = st.verifier.appraise(evidence)
         t2 = now_ms()
         if not results.get("ok"):
             self._error(403, "attestation-failed", "Verifier: %s" % results.get("reason"), corr)
@@ -237,9 +264,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         # 3. Relying Party: recompute the binding, then issue or release
         subject = b64u_dec(req["csr"]) if mode == "enroll" else b64u_dec(req["cek_pub"])
-        expected = st.expected_binding(handle, subject)
+        expected = st.expected_binding(handle, target, subject)
         if results.get("binding_value") != expected.hex():
-            self._error(403, "binding-mismatch", "Evidence binding value does not match handle, server_id and %s" % ("CSR" if mode == "enroll" else "CEKpub"), corr)
+            self._error(403, "binding-mismatch", "Evidence binding value does not match handle, server_id, target and %s" % ("CSR" if mode == "enroll" else "CEKpub"), corr)
             st.record({"resource": u.path, "corr": corr, "outcome": 403, "reason": "binding-mismatch",
                        "expected": expected.hex()[:32], "got": (results.get("binding_value") or "")[:32], "ms_verifier": t2 - t1,
                        "platform_form": results.get("platform_form"), "chip_id": (results.get("chip_id") or "")[:16]})
@@ -247,7 +274,7 @@ class Handler(BaseHTTPRequestHandler):
         hint = req.get("credential_hint")
         try:
             if mode == "enroll":
-                cert = st.ca.issue(subject, results, hint)
+                cert = st.ca.issue(subject, results, hint, target)
                 t3 = now_ms()
                 body = pkcs7.serialize_certificates([cert], serialization.Encoding.DER)
                 import base64
@@ -257,7 +284,7 @@ class Handler(BaseHTTPRequestHandler):
                            "chip_id": (results.get("chip_id") or "")[:16], "report_id": (results.get("report_id") or "")[:16],
                            "measurement": (results.get("measurement") or "")[:16], "checks": results.get("checks")})
             else:
-                bundle = st.vault.release(subject, results, handle, st.server_id, hint, auth_mode=st.bundle_auth_mode)
+                bundle = st.vault.release(subject, results, handle, st.server_id, target, hint, auth_mode=st.bundle_auth_mode)
                 t3 = now_ms()
                 self._send(200, bundle, MEDIA["bundle"])
                 st.record({"resource": u.path, "corr": corr, "outcome": 200, "ms_verifier": t2 - t1, "ms_vault": t3 - t2, "ms_total": t3 - t0,
