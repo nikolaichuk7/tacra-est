@@ -4,10 +4,12 @@ Companion to the pull request against `TheBankster/lamps-tacra-est` (26 Septembe
 Everything here is reproducible from a clone; every number in the draft text that comes from this
 repository names the file it comes from, and `docs/RESULTS.md` collects them.
 
-- `formal/` — the EST profile in the applied pi calculus for ProVerif, eight models: the three
+- `formal/` — the EST profile in the applied pi calculus for ProVerif, fifteen models: the three
   attacks the -00 text admits (server substitution and Target substitution by the conduit; bundle
   substitution), the proofs with the bindings of the pull request in place, the same proofs with a
-  dishonest second server or Vault, and a leaked TEE key as the explicit assumption.
+  dishonest second server or Vault, a leaked TEE key as the explicit assumption, and six models on
+  where the bound server identity comes from (the Attester's configuration or the initiation
+  response) with a fresh Handle or a shared epoch.
 - `impl/` — the reference implementation: Attester (in a SEV-SNP guest, or a mock TEE), EST Client
   (conduit), EST Server with the three resources, Verifier, Credential Authority, Secret Vault; and
   the drills that run each attack against the pull request's text and against -00.

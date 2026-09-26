@@ -42,6 +42,22 @@ for *sid* and the same Target; Q3: Q2, injective; R1: a secret the Attester uses
 it by the Vault and Target it intended; S: the Vault's secret stays secret. `formal/README.md`
 explains the models and the three attacks found.
 
+Where the bound server identity comes from, `formal/results/proverif-20260926T232411Z-rrp-source.txt`
+(six models, ProVerif `preciseActions` set; B1: the issuing server is the one the Attester bound, for
+the same Target; U1: no two servers issue for one CSR and Target):
+
+| freshness | identity the Attester binds | Q1 | B1 | U1 |
+|---|---|---|---|---|
+| fresh Handle per server | none | false | | true |
+| fresh Handle per server | received in the initiation response | false | true | true |
+| fresh Handle per server | from its own configuration | true | | true |
+| shared epoch | none | false | | **false** |
+| shared epoch | received in the initiation response | false | true | true |
+| shared epoch | from its own configuration | true | | true |
+
+The Q1 values in the first and third rows are those of `enrollment-nobind` and
+`enrollment-bind-nocompare` above; the six models add U1 (and B1 where the identity is received).
+
 ## 2. Drills on the mock TEE, `evidence/20260926T204536Z-mock/drills.json`
 
 | drill | text | outcome |

@@ -10,6 +10,14 @@ proof of possession and the binding, and issues. Queries:
   Q1  Issued(sid, t, x) ==> AttesterIntends(sid, t', x)     the right server, any Target
   Q2  Issued(sid, t, x) ==> AttesterIntends(sid, t, x)      the right server and the right Target
   Q3  inj-event version of Q2                               no second issuance per intent
+  B1  Issued(sid, t, x) ==> AttesterBinds(sid, t, x)        the server whose identity the Attester bound
+  B2  inj-event version of B1
+  U1  Issued(s1, t, x) && Issued(s2, t, x) ==> s1 = s2      at most one server issues for a CSR and Target
+The rrp-source variants ask where the server identity in the binding comes from (rrp: the RATS
+Relying Party, here the issuing server): the Attester binds either the server_id it receives in the
+initiation response, from the conduit, or the one in its own configuration; and the first leg
+returns either a fresh Handle per server session or a shared public epoch ep (absent-epoch with a
+remote initiate), which the server recomputes the binding with.
 Retrieval. The same first leg; the Vault releases its secret encrypted to CEKpub, in base mode or
 with sender authentication (HPKE mode_auth). Query:
   R1  AttesterUses(vid, t, s) ==> VaultReleased(vid, t, s)
@@ -58,23 +66,71 @@ event VaultReleased(bitstring, bitstring, bitstring).
 event AttesterUses(bitstring, bitstring, bitstring).
 """
 
+Q1 = "query sid: bitstring, t: bitstring, t2: bitstring, x: bitstring; event(Issued(sid, t, x)) ==> event(AttesterIntends(sid, t2, x)).\n"
+Q2 = "query sid: bitstring, t: bitstring, x: bitstring; event(Issued(sid, t, x)) ==> event(AttesterIntends(sid, t, x)).\n"
+Q3 = "query sid: bitstring, t: bitstring, x: bitstring; inj-event(Issued(sid, t, x)) ==> inj-event(AttesterIntends(sid, t, x)).\n"
+B1 = "query sid: bitstring, t: bitstring, x: bitstring; event(Issued(sid, t, x)) ==> event(AttesterBinds(sid, t, x)).\n"
+B2 = "query sid: bitstring, t: bitstring, x: bitstring; inj-event(Issued(sid, t, x)) ==> inj-event(AttesterBinds(sid, t, x)).\n"
+U1 = "query s1: bitstring, s2: bitstring, t: bitstring, x: bitstring; event(Issued(s1, t, x)) && event(Issued(s2, t, x)) ==> s1 = s2.\n"
+RRP_SOURCE = ("rrp-from-initiate", "nonce-norrp-uniqueness", "nonce-rrp-configured-uniqueness",
+              "epoch-norrp", "epoch-rrp-from-initiate", "epoch-rrp-configured")
+
 def enrollment(variant: str) -> str:
     # variant: nobind (-00) | serveronly | bind | bind-nocompare | bind-compromised-s2 | bind-tee-key-leaked
-    if variant == "nobind":
+    #   rrp source: rrp-from-initiate | nonce-norrp-uniqueness | nonce-rrp-configured-uniqueness
+    #               | epoch-norrp | epoch-rrp-from-initiate | epoch-rrp-configured
+    decls = ""                        # declarations only some rrp-source variants need
+    a_binds = ""                      # event AttesterBinds, where the Attester binds a server_id it received
+    s_new = "new n: bitstring;\n  "   # the Handle; the epoch variants have none
+    if variant in ("nobind", "nonce-norrp-uniqueness"):
         a_in = "in(c, n: bitstring);"
         a_rd = "h((n, csr))"
         s_out = "out(c, n);"
         s_rd = "h((n, csr))"
-        title = "Enrollment as in draft -00: Evidence binds the Handle and the CSR"
+        title = {"nobind": "Enrollment as in draft -00: Evidence binds the Handle and the CSR",
+                 "nonce-norrp-uniqueness": "Enrollment as in draft -00 (Handle and CSR bound, no server identity), asking only whether two servers can issue for one CSR and Target"}[variant]
     elif variant == "serveronly":
         a_in = "in(c, (n: bitstring, sid: bitstring));\n  if sid = srv then"
         a_rd = "h((n, srv, csr))"
         s_out = "out(c, (n, id));"
         s_rd = "h((n, id, csr))"
         title = "Enrollment with server_id bound but not the Target"
+    elif variant == "rrp-from-initiate":
+        # No server identity in the Attester's configuration: it binds the server_id it receives in
+        # the initiation response, as the conduit delivers it, and compares it with nothing.
+        decls = "event AttesterBinds(bitstring, bitstring, bitstring).\n"
+        a_in = "in(c, (n: bitstring, sid: bitstring));"
+        a_binds = "\n  event AttesterBinds(sid, tgt, csr);"
+        a_rd = "h((n, sid, tgt, csr))"
+        s_out = "out(c, (n, id));"
+        s_rd = "h((n, id, tgt, csr))"
+        title = "Enrollment with a fresh Handle per initiation; the Attester has no configured server identity and binds the server_id it receives in the initiation response, without comparison"
+    elif variant.startswith("epoch-"):
+        # Absent-epoch with a remote initiate: the server creates no Handle, returns the public epoch
+        # ep and recomputes the binding with ep; the Attester binds ep, not the epoch field it receives.
+        decls = "const ep: bitstring.\n"
+        s_new = ""
+        if variant == "epoch-norrp":
+            a_in = "in(c, _: bitstring);"
+            a_rd = "h((ep, tgt, csr))"
+            s_out = "out(c, ep);"
+            s_rd = "h((ep, tgt, csr))"
+        else:
+            a_in = "in(c, (_: bitstring, sid: bitstring));"
+            s_out = "out(c, (ep, id));"
+            s_rd = "h((ep, id, tgt, csr))"
+            if variant == "epoch-rrp-from-initiate":
+                decls += "event AttesterBinds(bitstring, bitstring, bitstring).\n"
+                a_binds = "\n  event AttesterBinds(sid, tgt, csr);"
+                a_rd = "h((ep, sid, tgt, csr))"
+            else:
+                a_rd = "h((ep, srv, tgt, csr))"
+        title = {"epoch-norrp": "Enrollment with a shared public epoch in place of a fresh Handle (absent-epoch, remote initiate); Evidence binds the epoch, the Target and the CSR, no server identity",
+                 "epoch-rrp-from-initiate": "Enrollment with a shared public epoch in place of a fresh Handle; Evidence binds the epoch, the server_id received in the initiation response, the Target and the CSR, without comparison",
+                 "epoch-rrp-configured": "Enrollment with a shared public epoch in place of a fresh Handle; Evidence binds the epoch, the server identity from the Attester's configuration, the Target and the CSR, without comparison"}[variant]
     else:
         a_in = "in(c, (n: bitstring, sid: bitstring));\n  if sid = srv then"
-        if variant == "bind-nocompare":
+        if variant in ("bind-nocompare", "nonce-rrp-configured-uniqueness"):
             # No Attester-side comparison of the wire server_id: the Attester binds the server
             # identity from its own CAI configuration (srv), and TACRA keeps the CAS transparent.
             a_in = "in(c, (n: bitstring, sid: bitstring));"
@@ -84,34 +140,39 @@ def enrollment(variant: str) -> str:
         title = {"bind": "Enrollment with the pull request's binding: Handle, server_id, Target and CSR",
                  "bind-nocompare": "Enrollment with the full binding and no Attester-side server_id comparison: the bound server identity comes from the CAI configuration, the CAS stays transparent",
                  "bind-compromised-s2": "Enrollment with the full binding; the second server and its CA key are the attacker's",
-                 "bind-tee-key-leaked": "Enrollment with the full binding; the TEE attestation key has leaked (an assumption made explicit)"}[variant]
+                 "bind-tee-key-leaked": "Enrollment with the full binding; the TEE attestation key has leaked (an assumption made explicit)",
+                 "nonce-rrp-configured-uniqueness": "Enrollment as bind-nocompare (fresh Handle, server identity from the Attester's configuration, no comparison), asking only whether two servers can issue for one CSR and Target"}[variant]
     if variant == "bind-compromised-s2":
         queries = """
 query t: bitstring, x: bitstring; event(Issued(id1, t, x)) ==> event(AttesterIntends(id1, t, x)).
 """
         proc = "out(c, pk(tk)); out(c, pk(ca1)); out(c, ca2);\n  ( !Attester(id1, tA) | !Server(id1, ca1) )"
     else:
-        queries = """
-query sid: bitstring, t: bitstring, t2: bitstring, x: bitstring; event(Issued(sid, t, x)) ==> event(AttesterIntends(sid, t2, x)).
-query sid: bitstring, t: bitstring, x: bitstring; event(Issued(sid, t, x)) ==> event(AttesterIntends(sid, t, x)).
-query sid: bitstring, t: bitstring, x: bitstring; inj-event(Issued(sid, t, x)) ==> inj-event(AttesterIntends(sid, t, x)).
-"""
+        queries = "\n" + {"rrp-from-initiate": Q1 + Q2 + Q3 + B1 + B2 + U1,
+                          "nonce-norrp-uniqueness": U1,
+                          "nonce-rrp-configured-uniqueness": U1,
+                          "epoch-norrp": Q1 + U1,
+                          "epoch-rrp-from-initiate": Q1 + B1 + U1,
+                          "epoch-rrp-configured": Q1 + U1}.get(variant, Q1 + Q2 + Q3)
         leak = " out(c, tk);" if variant == "bind-tee-key-leaked" else ""
         proc = "out(c, pk(tk)); out(c, pk(ca1)); out(c, pk(ca2));" + leak + "\n  ( !Attester(id1, tA) | !Server(id1, ca1) | !Server(id2, ca2) )"
-    return HEADER.format(title=title) + queries + f"""
+    if variant in RRP_SOURCE:
+        # Without preciseActions, ProVerif lets one Attester session read two different initiation
+        # responses, and U1 comes back "cannot be proved" with no attack trace; see README.md.
+        decls = "set preciseActions = true.\n" + decls
+    return HEADER.format(title=title) + decls + queries + f"""
 let Attester(srv: bitstring, tgt: bitstring) =
   new csk: skey;
   let csr = (pk2b(pk(csk)), sign(pk2b(pk(csk)), csk)) in
   out(c, tgt);
   {a_in}
-  event AttesterIntends(srv, tgt, csr);
+  event AttesterIntends(srv, tgt, csr);{a_binds}
   let ev = sign((meas, {a_rd}), tk) in
   out(c, (tgt, csr, ev)).
 
 let Server(id: bitstring, ca: skey) =
   in(c, tgt: bitstring);
-  new n: bitstring;
-  {s_out}
+  {s_new}{s_out}
   in(c, (tgt2: bitstring, csr: bitstring, ev: bitstring));
   if tgt2 = tgt then
   let (m: bitstring, rd: bitstring) = checksig(ev, pk(tk)) in
@@ -183,6 +244,12 @@ if __name__ == "__main__":
         "enrollment-bind-nocompare.pv": enrollment("bind-nocompare"),
         "enrollment-bind-compromised-s2.pv": enrollment("bind-compromised-s2"),
         "enrollment-bind-tee-key-leaked.pv": enrollment("bind-tee-key-leaked"),
+        "enrollment-rrp-from-initiate.pv": enrollment("rrp-from-initiate"),
+        "enrollment-nonce-norrp-uniqueness.pv": enrollment("nonce-norrp-uniqueness"),
+        "enrollment-nonce-rrp-configured-uniqueness.pv": enrollment("nonce-rrp-configured-uniqueness"),
+        "enrollment-epoch-norrp.pv": enrollment("epoch-norrp"),
+        "enrollment-epoch-rrp-from-initiate.pv": enrollment("epoch-rrp-from-initiate"),
+        "enrollment-epoch-rrp-configured.pv": enrollment("epoch-rrp-configured"),
         "retrieval-base.pv": retrieval("base"),
         "retrieval-auth.pv": retrieval("auth"),
         "retrieval-auth-compromised-vault2.pv": retrieval("auth-compromised-vault2"),

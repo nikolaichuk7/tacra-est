@@ -1,0 +1,2139 @@
+### proverif version
+Proverif 2.05. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre
+### date
+2026-09-26T23:16:25Z
+### enrollment-rrp-from-initiate.pv
+File "enrollment-rrp-from-initiate.pv", line 51, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, (n: bitstring,sid_1: bitstring));
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((n,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {16}let id: bitstring = id1 in
+    {17}let ca: skey = ca1 in
+    {18}in(c, tgt_1: bitstring);
+    {19}new n_1: bitstring;
+    {20}out(c, (n_1,id));
+    {21}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((n_1,id,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {32}let id_1: bitstring = id2 in
+    {33}let ca_1: skey = ca2 in
+    {34}in(c, tgt_2: bitstring);
+    {35}new n_2: bitstring;
+    {36}out(c, (n_2,id_1));
+    {37}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((n_2,id_1,tgt_2,csr_2))) then
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-rrp-from-initiate.pv", line 40, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-rrp-from-initiate.pv", line 41, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-rrp-from-initiate.pv", line 42, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-rrp-from-initiate.pv", line 43, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-rrp-from-initiate.pv", line 44, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, (n: bitstring,sid_1: bitstring));
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((n,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {18}in(c, tgt_1: bitstring);
+    {19}new n_1: bitstring;
+    {16}let id: bitstring = id1 in
+    {20}out(c, (n_1,id));
+    {21}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((n_1,id,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {17}let ca: skey = ca1 in
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {34}in(c, tgt_2: bitstring);
+    {35}new n_2: bitstring;
+    {32}let id_1: bitstring = id2 in
+    {36}out(c, (n_2,id_1));
+    {37}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((n_2,id_1,tgt_2,csr_2))) then
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {33}let ca_1: skey = ca2 in
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_2[tgt_2 = tA,!1 = @sid_1]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. The message tA that the attacker may have by 1 may be received at input {34}.
+So the message (n_3,id2) may be sent to the attacker at output {36}.
+attacker((n_3,id2)).
+
+4. By 3, the attacker may know (n_3,id2).
+Using the function 1-proj-2-tuple the attacker may obtain n_3.
+attacker(n_3).
+
+5. By 4, the attacker may know n_3.
+By 2, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (n_3,id2).
+attacker((n_3,id2)).
+
+6. The message (n_3,id2) that the attacker may have by 5 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+8. The attacker has some term sid_2.
+attacker(sid_2).
+
+9. The attacker has some term n_4.
+attacker(n_4).
+
+10. By 9, the attacker may know n_4.
+By 8, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (n_4,sid_2).
+attacker((n_4,sid_2)).
+
+11. The message (n_4,sid_2) that the attacker may have by 10 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. By 11, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+14. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+15. By 14, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+16. By 15, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+17. By 16, the attacker may know pk2b(pk(csk_1)).
+By 13, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+18. By 1, the attacker may know tA.
+By 17, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 7, the attacker may know sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+19. The message tA that the attacker may have by 1 may be received at input {34}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 18 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+20. By 19, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unified sid_2 with id2
+Unified n_4 with n_2[tgt_2 = tA,!1 = @sid_1]
+The clause after UnifyDerivationPrecise is
+b-event(AttesterIntends(id1,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid])))) -> event(Issued(id2,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid]))))
+This clause still contradicts the query.
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, tA) at {34} in copy a_1
+
+new n_2: bitstring creating n_5 at {35} in copy a_1
+
+out(c, (~M_4,~M_5)) with ~M_4 = n_5, ~M_5 = id2 at {36} in copy a_1
+
+in(c, (~M_4,id2)) with ~M_4 = n_5 at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+event AttesterBinds(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {12} in copy a
+
+out(c, (~M_6,(pk2b(~M_7),~M_8),~M_9)) with ~M_6 = tA, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {14} in copy a
+
+in(c, (tA,(pk2b(~M_7),~M_8),~M_9)) with ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {37} in copy a_1
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {45} in copy a_1 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {45} in copy a_1.
+A trace has been found.
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_2[tgt_2 = tA,!1 = @sid_1]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. The message tA that the attacker may have by 1 may be received at input {34}.
+So the message (n_3,id2) may be sent to the attacker at output {36}.
+attacker((n_3,id2)).
+
+4. By 3, the attacker may know (n_3,id2).
+Using the function 1-proj-2-tuple the attacker may obtain n_3.
+attacker(n_3).
+
+5. By 4, the attacker may know n_3.
+By 2, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (n_3,id2).
+attacker((n_3,id2)).
+
+6. The message (n_3,id2) that the attacker may have by 5 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+8. The attacker has some term sid_2.
+attacker(sid_2).
+
+9. The attacker has some term n_4.
+attacker(n_4).
+
+10. By 9, the attacker may know n_4.
+By 8, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (n_4,sid_2).
+attacker((n_4,sid_2)).
+
+11. The message (n_4,sid_2) that the attacker may have by 10 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. By 11, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+14. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+15. By 14, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+16. By 15, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+17. By 16, the attacker may know pk2b(pk(csk_1)).
+By 13, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+18. By 1, the attacker may know tA.
+By 17, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 7, the attacker may know sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+19. The message tA that the attacker may have by 1 may be received at input {34}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 18 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+20. By 19, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unified sid_2 with id2
+Unified n_4 with n_2[tgt_2 = tA,!1 = @sid_1]
+The clause after UnifyDerivationPrecise is
+b-event(AttesterIntends(id1,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid])))) -> event(Issued(id2,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid]))))
+This clause still contradicts the query.
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, tA) at {34} in copy a_1
+
+new n_2: bitstring creating n_5 at {35} in copy a_1
+
+out(c, (~M_4,~M_5)) with ~M_4 = n_5, ~M_5 = id2 at {36} in copy a_1
+
+in(c, (~M_4,id2)) with ~M_4 = n_5 at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+event AttesterBinds(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {12} in copy a
+
+out(c, (~M_6,(pk2b(~M_7),~M_8),~M_9)) with ~M_6 = tA, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {14} in copy a
+
+in(c, (tA,(pk2b(~M_7),~M_8),~M_9)) with ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {37} in copy a_1
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {45} in copy a_1 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {45} in copy a_1.
+A trace has been found.
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t,x)) is false.
+-- Query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterIntends(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterIntends(sid_2,t,x))
+goal reachable: b-inj-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ11_1) && attacker(n_3) && attacker(sid_2) && b-inj-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ11_2) -> inj-event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ45_1)
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_4 = n_2[tgt_2 = tA,!1 = @sid_1]
+@occ45_1 = @occ45[ev_2 = sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]),csr_2 = (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),tgt2_1 = tA,tgt_2 = tA,!1 = @sid_1]
+@occ11_1 = @occ11[sid_1 = sid_2,n = n_3,!1 = @sid]
+@occ11_2 = @occ11[sid_1 = id2,n = n_4,!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_2[tgt_2 = tA,!1 = @sid_1]
+@occ45_1 = @occ45[ev_2 = sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]),csr_2 = (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),tgt2_1 = tA,tgt_2 = tA,!1 = @sid_1]
+@occ11_1 = @occ11[sid_1 = sid_2,n = n_4,!1 = @sid]
+@occ11_2 = @occ11[sid_1 = id2,n = n_3,!1 = @sid]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. The message tA that the attacker may have by 1 may be received at input {34}.
+So the message (n_3,id2) may be sent to the attacker at output {36}.
+attacker((n_3,id2)).
+
+4. By 3, the attacker may know (n_3,id2).
+Using the function 1-proj-2-tuple the attacker may obtain n_3.
+attacker(n_3).
+
+5. By 4, the attacker may know n_3.
+By 2, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (n_3,id2).
+attacker((n_3,id2)).
+
+6. The message (n_3,id2) that the attacker may have by 5 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) (with occurrence name @occ11_2) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+8. We assume as hypothesis that
+attacker(sid_2).
+
+9. We assume as hypothesis that
+attacker(n_4).
+
+10. By 9, the attacker may know n_4.
+By 8, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (n_4,sid_2).
+attacker((n_4,sid_2)).
+
+11. The message (n_4,sid_2) that the attacker may have by 10 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) (with occurrence name @occ11_1) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. By 11, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+14. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+15. By 14, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+16. By 15, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+17. By 16, the attacker may know pk2b(pk(csk_1)).
+By 13, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+18. By 1, the attacker may know tA.
+By 17, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 7, the attacker may know sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+19. The message tA that the attacker may have by 1 may be received at input {34}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 18 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45} in session @sid_1.
+inj-event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ45_1).
+
+20. By 19, inj-event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ45_1).
+The goal is reached, represented in the following fact:
+inj-event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ45_1).
+
+
+Unified sid_2 with id2
+Unified n_4 with n_2[tgt_2 = tA,!1 = @sid_1]
+The clause after UnifyDerivationPrecise is
+b-inj-event(AttesterIntends(id1,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid]))),@occ11[sid_1 = id2,n = n_2[tgt_2 = tA,!1 = @sid_1],!1 = @sid]) -> inj-event(Issued(id2,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid]))),@occ45[ev_2 = sign((meas,h((n_2[tgt_2 = tA,!1 = @sid_1],id2,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid]))))),tk[]),csr_2 = (pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid])),tgt2_1 = tA,tgt_2 = tA,!1 = @sid_1])
+This clause still contradicts the query.
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, tA) at {34} in copy a_1
+
+new n_2: bitstring creating n_5 at {35} in copy a_1
+
+out(c, (~M_4,~M_5)) with ~M_4 = n_5, ~M_5 = id2 at {36} in copy a_1
+
+in(c, (~M_4,id2)) with ~M_4 = n_5 at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+event AttesterBinds(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {12} in copy a
+
+out(c, (~M_6,(pk2b(~M_7),~M_8),~M_9)) with ~M_6 = tA, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {14} in copy a
+
+in(c, (tA,(pk2b(~M_7),~M_8),~M_9)) with ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {37} in copy a_1
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {45} in copy a_1 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {45} in copy a_1.
+A trace has been found.
+RESULT inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterIntends(sid_2,t,x)) is false.
+RESULT (even event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t,x)) is false.)
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x))
+goal reachable: b-event(AttesterBinds(sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(sid_2) && b-event(AttesterBinds(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+goal reachable: b-event(AttesterBinds(sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(sid_2) && b-event(AttesterBinds(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+-- Query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterBinds(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterBinds(sid_2,t,x))
+goal reachable: b-inj-event(AttesterBinds(sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ12_1) && attacker(n_3) && attacker(sid_2) && b-inj-event(AttesterBinds(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ12_2) -> inj-event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ29_2)
+The 1st, 4th hypotheses occur strictly before the conclusion.
+The 2nd, 3rd hypotheses occur before the conclusion.
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_4 = n_1[tgt_1 = tA,!1 = @sid_1]
+@occ29_2 = @occ29_1[ev_1 = sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]),csr_1 = (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),tgt2 = tA,tgt_1 = tA,!1 = @sid_1]
+@occ12_1 = @occ12[sid_1 = sid_2,n = n_3,!1 = @sid]
+@occ12_2 = @occ12[sid_1 = id1,n = n_4,!1 = @sid]
+goal reachable: b-inj-event(AttesterBinds(sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ12_1) && attacker(n_3) && attacker(sid_2) && b-inj-event(AttesterBinds(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ12_2) -> inj-event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))),@occ45_2)
+The 1st, 4th hypotheses occur strictly before the conclusion.
+The 2nd, 3rd hypotheses occur before the conclusion.
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_4 = n_2[tgt_2 = tA,!1 = @sid_1]
+@occ45_2 = @occ45_1[ev_2 = sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]),csr_2 = (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),tgt2_1 = tA,tgt_2 = tA,!1 = @sid_1]
+@occ12_1 = @occ12[sid_1 = sid_2,n = n_3,!1 = @sid]
+@occ12_2 = @occ12[sid_1 = id2,n = n_4,!1 = @sid]
+RESULT inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterBinds(sid_2,t,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_1[tgt_1 = tA,!1 = @sid_1]
+n_4 = n_2[tgt_2 = tA,!1 = @sid_2]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. The message tA that the attacker may have by 1 may be received at input {34}.
+So the message (n_4,id2) may be sent to the attacker at output {36}.
+attacker((n_4,id2)).
+
+4. By 3, the attacker may know (n_4,id2).
+Using the function 1-proj-2-tuple the attacker may obtain n_4.
+attacker(n_4).
+
+5. By 4, the attacker may know n_4.
+By 2, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (n_4,id2).
+attacker((n_4,id2)).
+
+6. The message (n_4,id2) that the attacker may have by 5 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+8. The attacker has some term sid_2.
+attacker(sid_2).
+
+9. The attacker has some term n_5.
+attacker(n_5).
+
+10. By 9, the attacker may know n_5.
+By 8, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (n_5,sid_2).
+attacker((n_5,sid_2)).
+
+11. The message (n_5,sid_2) that the attacker may have by 10 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. By 11, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+14. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+15. By 14, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+16. By 15, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+17. By 16, the attacker may know pk2b(pk(csk_1)).
+By 13, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+18. By 1, the attacker may know tA.
+By 17, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 7, the attacker may know sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+19. The message tA that the attacker may have by 1 may be received at input {34}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 18 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+20. Using the function id1 the attacker may obtain id1.
+attacker(id1).
+
+21. The message tA that the attacker may have by 1 may be received at input {18}.
+So the message (n_3,id1) may be sent to the attacker at output {20}.
+attacker((n_3,id1)).
+
+22. By 21, the attacker may know (n_3,id1).
+Using the function 1-proj-2-tuple the attacker may obtain n_3.
+attacker(n_3).
+
+23. By 22, the attacker may know n_3.
+By 20, the attacker may know id1.
+Using the function 2-tuple the attacker may obtain (n_3,id1).
+attacker((n_3,id1)).
+
+24. The message (n_3,id1) that the attacker may have by 23 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+25. By 24, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+26. By 1, the attacker may know tA.
+By 17, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 25, the attacker may know sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+27. The message tA that the attacker may have by 1 may be received at input {18}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 26 may be received at input {21}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {29}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+28. By 27, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 19, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unification of attacker((n_2[tgt_2 = tA,!1 = @sid_2],id2)) and attacker((n_1[tgt_1 = tA,!1 = @sid_1],id1)) failed or made a constraint become false at the input at occurrence {10}
+Try adding a [precise] option on it.
+Trying with the initial derivation tree instead.
+Could not find a trace corresponding to this derivation.
+goal reachable: event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_2[tgt_2 = tA,!1 = @sid_1]
+n_4 = n_1[tgt_1 = tA,!1 = @sid_2]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id1 the attacker may obtain id1.
+attacker(id1).
+
+3. The message tA that the attacker may have by 1 may be received at input {18}.
+So the message (n_4,id1) may be sent to the attacker at output {20}.
+attacker((n_4,id1)).
+
+4. By 3, the attacker may know (n_4,id1).
+Using the function 1-proj-2-tuple the attacker may obtain n_4.
+attacker(n_4).
+
+5. By 4, the attacker may know n_4.
+By 2, the attacker may know id1.
+Using the function 2-tuple the attacker may obtain (n_4,id1).
+attacker((n_4,id1)).
+
+6. The message (n_4,id1) that the attacker may have by 5 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+8. The attacker has some term sid_2.
+attacker(sid_2).
+
+9. The attacker has some term n_5.
+attacker(n_5).
+
+10. By 9, the attacker may know n_5.
+By 8, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (n_5,sid_2).
+attacker((n_5,sid_2)).
+
+11. The message (n_5,sid_2) that the attacker may have by 10 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. By 11, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+14. By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+15. By 14, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+16. By 15, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+17. By 16, the attacker may know pk2b(pk(csk_1)).
+By 13, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+18. By 1, the attacker may know tA.
+By 17, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 7, the attacker may know sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+19. The message tA that the attacker may have by 1 may be received at input {18}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 18 may be received at input {21}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {29}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+20. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+21. The message tA that the attacker may have by 1 may be received at input {34}.
+So the message (n_3,id2) may be sent to the attacker at output {36}.
+attacker((n_3,id2)).
+
+22. By 21, the attacker may know (n_3,id2).
+Using the function 1-proj-2-tuple the attacker may obtain n_3.
+attacker(n_3).
+
+23. By 22, the attacker may know n_3.
+By 20, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (n_3,id2).
+attacker((n_3,id2)).
+
+24. The message (n_3,id2) that the attacker may have by 23 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+25. By 24, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+26. By 1, the attacker may know tA.
+By 17, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 25, the attacker may know sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+27. The message tA that the attacker may have by 1 may be received at input {34}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 26 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+28. By 27, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 19, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unification of attacker((n_1[tgt_1 = tA,!1 = @sid_2],id1)) and attacker((n_2[tgt_2 = tA,!1 = @sid_1],id2)) failed or made a constraint become false at the input at occurrence {10}
+Try adding a [precise] option on it.
+Trying with the initial derivation tree instead.
+Could not find a trace corresponding to this derivation.
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 cannot be proved.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t,x)) is false.
+
+Query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterIntends(sid_2,t,x)) is false.
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+
+Query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterBinds(sid_2,t,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 cannot be proved.
+
+--------------------------------------------------------------
+
+### enrollment-nonce-norrp-uniqueness.pv
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, n: bitstring);
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((n,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}in(c, tgt_1: bitstring);
+    {18}new n_1: bitstring;
+    {19}out(c, n_1);
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((n_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {30}!
+    {31}let id_1: bitstring = id2 in
+    {32}let ca_1: skey = ca2 in
+    {33}in(c, tgt_2: bitstring);
+    {34}new n_2: bitstring;
+    {35}out(c, n_2);
+    {36}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {37}if (tgt2_1 = tgt_2) then
+    {38}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {39}if (m_1 = meas) then
+    {40}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {41}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {42}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {43}if (rd_1 = h((n_2,csr_2))) then
+    {44}event Issued(id_1,tgt_2,csr_2);
+    {45}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, n: bitstring);
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((n,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {17}in(c, tgt_1: bitstring);
+    {18}new n_1: bitstring;
+    {19}out(c, n_1);
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((n_1,csr_1))) then
+    {15}let id: bitstring = id1 in
+    {28}event Issued(id,tgt_1,csr_1);
+    {16}let ca: skey = ca1 in
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {30}!
+    {33}in(c, tgt_2: bitstring);
+    {34}new n_2: bitstring;
+    {35}out(c, n_2);
+    {36}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {37}if (tgt2_1 = tgt_2) then
+    {38}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {39}if (m_1 = meas) then
+    {40}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {41}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {42}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {43}if (rd_1 = h((n_2,csr_2))) then
+    {31}let id_1: bitstring = id2 in
+    {44}event Issued(id_1,tgt_2,csr_2);
+    {32}let ca_1: skey = ca2 in
+    {45}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: attacker(t) -> event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_1[tgt_1 = t,!1 = @sid_1]
+n_4 = n_2[tgt_2 = t,!1 = @sid_2]
+
+1. We assume as hypothesis that
+attacker(t).
+
+2. The message t that the attacker may have by 1 may be received at input {33}.
+So the message n_4 may be sent to the attacker at output {35}.
+attacker(n_4).
+
+3. The message n_4 that the attacker may have by 2 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. The attacker has some term n_5.
+attacker(n_5).
+
+6. The message n_5 that the attacker may have by 5 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+8. By 7, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+9. By 7, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+11. By 10, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+12. By 11, the attacker may know pk2b(pk(csk_1)).
+By 8, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 1, the attacker may know t.
+By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+14. The message t that the attacker may have by 1 may be received at input {33}.
+The message (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 13 may be received at input {36}.
+So event Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {44}.
+event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+15. The message t that the attacker may have by 1 may be received at input {17}.
+So the message n_3 may be sent to the attacker at output {19}.
+attacker(n_3).
+
+16. The message n_3 that the attacker may have by 15 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+17. By 16, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+18. By 1, the attacker may know t.
+By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 17, the attacker may know sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+19. The message t that the attacker may have by 1 may be received at input {17}.
+The message (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 18 may be received at input {20}.
+So event Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {28}.
+event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+20. By 19, event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 14, event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unification of attacker(n_2[tgt_2 = t,!1 = @sid_2]) and attacker(n_1[tgt_1 = t,!1 = @sid_1]) failed or made a constraint become false at the input at occurrence {10}
+Try adding a [precise] option on it.
+Trying with the initial derivation tree instead.
+Could not find a trace corresponding to this derivation.
+goal reachable: attacker(t) -> event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_2[tgt_2 = t,!1 = @sid_1]
+n_4 = n_1[tgt_1 = t,!1 = @sid_2]
+
+1. We assume as hypothesis that
+attacker(t).
+
+2. The message t that the attacker may have by 1 may be received at input {17}.
+So the message n_4 may be sent to the attacker at output {19}.
+attacker(n_4).
+
+3. The message n_4 that the attacker may have by 2 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. The attacker has some term n_5.
+attacker(n_5).
+
+6. The message n_5 that the attacker may have by 5 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_5,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+8. By 7, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+9. By 7, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+11. By 10, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+12. By 11, the attacker may know pk2b(pk(csk_1)).
+By 8, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 1, the attacker may know t.
+By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+14. The message t that the attacker may have by 1 may be received at input {17}.
+The message (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 13 may be received at input {20}.
+So event Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {28}.
+event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+15. The message t that the attacker may have by 1 may be received at input {33}.
+So the message n_3 may be sent to the attacker at output {35}.
+attacker(n_3).
+
+16. The message n_3 that the attacker may have by 15 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+17. By 16, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+18. By 1, the attacker may know t.
+By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 17, the attacker may know sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+19. The message t that the attacker may have by 1 may be received at input {33}.
+The message (t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 18 may be received at input {36}.
+So event Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {44}.
+event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+20. By 19, event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 14, event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id2,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,t,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unification of attacker(n_1[tgt_1 = t,!1 = @sid_2]) and attacker(n_2[tgt_2 = t,!1 = @sid_1]) failed or made a constraint become false at the input at occurrence {10}
+Try adding a [precise] option on it.
+Trying with the initial derivation tree instead.
+Could not find a trace corresponding to this derivation.
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 cannot be proved.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 cannot be proved.
+
+--------------------------------------------------------------
+
+### enrollment-epoch-norrp.pv
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, ignored_v: bitstring);
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((ep,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}in(c, tgt_1: bitstring);
+    {18}out(c, ep);
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,tgt_1,csr_1))) then
+    {27}event Issued(id,tgt_1,csr_1);
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {30}let id_1: bitstring = id2 in
+    {31}let ca_1: skey = ca2 in
+    {32}in(c, tgt_2: bitstring);
+    {33}out(c, ep);
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,tgt_2,csr_2))) then
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-epoch-norrp.pv", line 40, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, ignored_v: bitstring);
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((ep,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {17}in(c, tgt_1: bitstring);
+    {18}out(c, ep);
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,tgt_1,csr_1))) then
+    {15}let id: bitstring = id1 in
+    {27}event Issued(id,tgt_1,csr_1);
+    {16}let ca: skey = ca1 in
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {32}in(c, tgt_2: bitstring);
+    {33}out(c, ep);
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,tgt_2,csr_2))) then
+    {30}let id_1: bitstring = id2 in
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {31}let ca_1: skey = ca2 in
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. The attacker has some term ignored_v_1.
+attacker(ignored_v_1).
+
+3. The message ignored_v_1 that the attacker may have by 2 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+6. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+7. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+8. By 7, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+9. By 8, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+By 6, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+11. By 1, the attacker may know tA.
+By 10, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. The message tA that the attacker may have by 1 may be received at input {32}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 11 may be received at input {34}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {42}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+13. By 12, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, a_1) at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+out(c, (~M_4,(pk2b(~M_5),~M_6),~M_7)) with ~M_4 = tA, ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {13} in copy a
+
+in(c, tA) at {32} in copy a_2
+
+out(c, ~M_8) with ~M_8 = ep at {33} in copy a_2
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {34} in copy a_2
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {42} in copy a_2 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {42} in copy a_2.
+A trace has been found.
+RESULT event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. The attacker has some term ignored_v_1.
+attacker(ignored_v_1).
+
+3. The message ignored_v_1 that the attacker may have by 2 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+6. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+7. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+8. By 7, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+9. By 8, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+By 6, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+11. By 1, the attacker may know tA.
+By 10, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. The message tA that the attacker may have by 1 may be received at input {32}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 11 may be received at input {34}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {42}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+13. The message tA that the attacker may have by 1 may be received at input {17}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 11 may be received at input {19}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {27}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. By 13, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 12, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, a_1) at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+out(c, (~M_4,(pk2b(~M_5),~M_6),~M_7)) with ~M_4 = tA, ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {13} in copy a
+
+in(c, tA) at {17} in copy a_2
+
+out(c, ~M_8) with ~M_8 = ep at {18} in copy a_2
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {19} in copy a_2
+
+event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {27} in copy a_2 (goal)
+
+out(c, ~M_9) with ~M_9 = sign((id1,tA,pk2b(pk(csk_2))),ca1) at {28} in copy a_2
+
+in(c, tA) at {32} in copy a_3
+
+out(c, ~M_10) with ~M_10 = ep at {33} in copy a_3
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {34} in copy a_3
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {42} in copy a_3 (goal)
+
+The event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {27} in copy a_2.
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {42} in copy a_3.
+A trace has been found.
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+
+### enrollment-epoch-rrp-from-initiate.pv
+File "enrollment-epoch-rrp-from-initiate.pv", line 49, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, (ignored_v: bitstring,sid_1: bitstring));
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((ep,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {16}let id: bitstring = id1 in
+    {17}let ca: skey = ca1 in
+    {18}in(c, tgt_1: bitstring);
+    {19}out(c, (ep,id));
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {30}!
+    {31}let id_1: bitstring = id2 in
+    {32}let ca_1: skey = ca2 in
+    {33}in(c, tgt_2: bitstring);
+    {34}out(c, (ep,id_1));
+    {35}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {36}if (tgt2_1 = tgt_2) then
+    {37}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {40}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {41}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {42}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {43}event Issued(id_1,tgt_2,csr_2);
+    {44}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-epoch-rrp-from-initiate.pv", line 41, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-epoch-rrp-from-initiate.pv", line 42, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, (ignored_v: bitstring,sid_1: bitstring));
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((ep,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {18}in(c, tgt_1: bitstring);
+    {16}let id: bitstring = id1 in
+    {19}out(c, (ep,id));
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {17}let ca: skey = ca1 in
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {30}!
+    {33}in(c, tgt_2: bitstring);
+    {31}let id_1: bitstring = id2 in
+    {34}out(c, (ep,id_1));
+    {35}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {36}if (tgt2_1 = tgt_2) then
+    {37}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {40}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {41}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {42}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {43}event Issued(id_1,tgt_2,csr_2);
+    {32}let ca_1: skey = ca2 in
+    {44}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. The attacker has some term ignored_v_1.
+attacker(ignored_v_1).
+
+4. By 3, the attacker may know ignored_v_1.
+By 2, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (ignored_v_1,id2).
+attacker((ignored_v_1,id2)).
+
+5. The message (ignored_v_1,id2) that the attacker may have by 4 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+6. By 5, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+7. The attacker has some term sid_2.
+attacker(sid_2).
+
+8. The attacker has some term ignored_v_2.
+attacker(ignored_v_2).
+
+9. By 8, the attacker may know ignored_v_2.
+By 7, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (ignored_v_2,sid_2).
+attacker((ignored_v_2,sid_2)).
+
+10. The message (ignored_v_2,sid_2) that the attacker may have by 9 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+11. By 10, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+12. By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+13. By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+14. By 13, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+15. By 14, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+16. By 15, the attacker may know pk2b(pk(csk_1)).
+By 12, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+17. By 1, the attacker may know tA.
+By 16, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 6, the attacker may know sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+18. The message tA that the attacker may have by 1 may be received at input {33}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 17 may be received at input {35}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {43}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+19. By 18, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unified sid_2 with id2
+Unified ignored_v_1 with ignored_v_2
+The clause after UnifyDerivationPrecise is
+b-event(AttesterIntends(id1,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid])))) -> event(Issued(id2,tA,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid]))))
+This clause still contradicts the query.
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, (a_1,id2)) at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+event AttesterBinds(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {12} in copy a
+
+out(c, (~M_4,(pk2b(~M_5),~M_6),~M_7)) with ~M_4 = tA, ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {14} in copy a
+
+in(c, tA) at {33} in copy a_2
+
+out(c, (~M_8,~M_9)) with ~M_8 = ep, ~M_9 = id2 at {34} in copy a_2
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {35} in copy a_2
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {43} in copy a_2 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {43} in copy a_2.
+A trace has been found.
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x))
+goal reachable: b-event(AttesterBinds(sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(sid_2) && b-event(AttesterBinds(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+goal reachable: b-event(AttesterBinds(sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(sid_2) && b-event(AttesterBinds(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. The attacker has some term ignored_v_1.
+attacker(ignored_v_1).
+
+4. By 3, the attacker may know ignored_v_1.
+By 2, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (ignored_v_1,id2).
+attacker((ignored_v_1,id2)).
+
+5. The message (ignored_v_1,id2) that the attacker may have by 4 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+6. By 5, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+7. The attacker has some term sid_2.
+attacker(sid_2).
+
+8. The attacker has some term ignored_v_2.
+attacker(ignored_v_2).
+
+9. By 8, the attacker may know ignored_v_2.
+By 7, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (ignored_v_2,sid_2).
+attacker((ignored_v_2,sid_2)).
+
+10. The message (ignored_v_2,sid_2) that the attacker may have by 9 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+11. By 10, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+12. By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+13. By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+14. By 13, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+15. By 14, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+16. By 15, the attacker may know pk2b(pk(csk_1)).
+By 12, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+17. By 1, the attacker may know tA.
+By 16, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 6, the attacker may know sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+18. The message tA that the attacker may have by 1 may be received at input {33}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 17 may be received at input {35}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {43}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+19. Using the function id1 the attacker may obtain id1.
+attacker(id1).
+
+20. The attacker has some term ignored_v_3.
+attacker(ignored_v_3).
+
+21. By 20, the attacker may know ignored_v_3.
+By 19, the attacker may know id1.
+Using the function 2-tuple the attacker may obtain (ignored_v_3,id1).
+attacker((ignored_v_3,id1)).
+
+22. The message (ignored_v_3,id1) that the attacker may have by 21 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+23. By 22, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+24. By 1, the attacker may know tA.
+By 16, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 23, the attacker may know sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+25. The message tA that the attacker may have by 1 may be received at input {18}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 24 may be received at input {20}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {28}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+26. By 25, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 18, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unification of attacker((ignored_v_1,id2)) and attacker((ignored_v_3,id1)) failed or made a constraint become false at the input at occurrence {10}
+Try adding a [precise] option on it.
+Trying with the initial derivation tree instead.
+Could not find a trace corresponding to this derivation.
+goal reachable: event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id1 the attacker may obtain id1.
+attacker(id1).
+
+3. The attacker has some term ignored_v_1.
+attacker(ignored_v_1).
+
+4. By 3, the attacker may know ignored_v_1.
+By 2, the attacker may know id1.
+Using the function 2-tuple the attacker may obtain (ignored_v_1,id1).
+attacker((ignored_v_1,id1)).
+
+5. The message (ignored_v_1,id1) that the attacker may have by 4 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+6. By 5, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+7. The attacker has some term sid_2.
+attacker(sid_2).
+
+8. The attacker has some term ignored_v_2.
+attacker(ignored_v_2).
+
+9. By 8, the attacker may know ignored_v_2.
+By 7, the attacker may know sid_2.
+Using the function 2-tuple the attacker may obtain (ignored_v_2,sid_2).
+attacker((ignored_v_2,sid_2)).
+
+10. The message (ignored_v_2,sid_2) that the attacker may have by 9 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+11. By 10, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,sid_2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+12. By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+13. By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+14. By 13, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+15. By 14, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+16. By 15, the attacker may know pk2b(pk(csk_1)).
+By 12, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+17. By 1, the attacker may know tA.
+By 16, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 6, the attacker may know sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+18. The message tA that the attacker may have by 1 may be received at input {18}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 17 may be received at input {20}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {28}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+19. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+20. The attacker has some term ignored_v_3.
+attacker(ignored_v_3).
+
+21. By 20, the attacker may know ignored_v_3.
+By 19, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (ignored_v_3,id2).
+attacker((ignored_v_3,id2)).
+
+22. The message (ignored_v_3,id2) that the attacker may have by 21 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+23. By 22, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+24. By 1, the attacker may know tA.
+By 16, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 23, the attacker may know sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+25. The message tA that the attacker may have by 1 may be received at input {33}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 24 may be received at input {35}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {43}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+26. By 25, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 18, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unification of attacker((ignored_v_1,id1)) and attacker((ignored_v_3,id2)) failed or made a constraint become false at the input at occurrence {10}
+Try adding a [precise] option on it.
+Trying with the initial derivation tree instead.
+Could not find a trace corresponding to this derivation.
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 cannot be proved.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 cannot be proved.
+
+--------------------------------------------------------------
+
+### enrollment-epoch-rrp-configured.pv
+File "enrollment-epoch-rrp-configured.pv", line 47, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, (ignored_v: bitstring,sid_1: bitstring));
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((ep,srv,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}in(c, tgt_1: bitstring);
+    {18}out(c, (ep,id));
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {27}event Issued(id,tgt_1,csr_1);
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {30}let id_1: bitstring = id2 in
+    {31}let ca_1: skey = ca2 in
+    {32}in(c, tgt_2: bitstring);
+    {33}out(c, (ep,id_1));
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-epoch-rrp-configured.pv", line 40, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, (ignored_v: bitstring,sid_1: bitstring));
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((ep,srv,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {17}in(c, tgt_1: bitstring);
+    {15}let id: bitstring = id1 in
+    {18}out(c, (ep,id));
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {27}event Issued(id,tgt_1,csr_1);
+    {16}let ca: skey = ca1 in
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {32}in(c, tgt_2: bitstring);
+    {30}let id_1: bitstring = id2 in
+    {33}out(c, (ep,id_1));
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {31}let ca_1: skey = ca2 in
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+

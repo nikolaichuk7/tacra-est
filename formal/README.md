@@ -1,6 +1,6 @@
 # The EST profile of TACRA in ProVerif: three attacks, the proofs, and the assumptions
 
-`gen.py` writes nine models from one template so that the "as in -00" and "as in the pull
+`gen.py` writes fifteen models from one template so that the "as in -00" and "as in the pull
 request" variants differ only in the lines that the pull request changes. `results/` holds the
 ProVerif 2.05 output, unedited.
 
@@ -29,6 +29,43 @@ or Vault does not weaken the guarantee for the honest one. A leaked TEE attestat
 everything, which is the assumption the protocol rests on. In retrieval, draft -00 keeps the
 secret confidential; what it loses is integrity: the Attester can be made to use a secret no
 Vault released.
+
+## Where the bound identity comes from: six more models
+
+These ask what the binding guarantees depending on where the Attester gets the server identity it
+binds, from its own configuration or from the initiation response that the untrusted conduit
+delivers, and on whether the first leg returns a fresh Handle per server session or a shared
+public epoch `ep` (absent-epoch with a remote initiate). The issuing server here plays the RATS
+Relying Party, the Credential Authority. Two more queries: **B1** a certificate issued by *sid*
+for CSR *x* was bound by the Attester to *sid* and the same Target, and **B2** its injective form;
+**U1** no two servers issue for the same CSR and Target. Results:
+`results/proverif-20260926T232411Z-rrp-source.txt`.
+
+| model | freshness | identity the Attester binds | Q1 | B1 | B2 | U1 |
+|---|---|---|---|---|---|---|
+| `enrollment-nonce-norrp-uniqueness.pv` | fresh Handle per server | none (the -00 binding) | (false: `enrollment-nobind.pv`) | | | true |
+| `enrollment-rrp-from-initiate.pv` | fresh Handle per server | received in the initiation response | false | true | true | true |
+| `enrollment-nonce-rrp-configured-uniqueness.pv` | fresh Handle per server | from its own configuration | (true: `enrollment-bind-nocompare.pv`) | | | true |
+| `enrollment-epoch-norrp.pv` | shared epoch | none | false | | | **false** |
+| `enrollment-epoch-rrp-from-initiate.pv` | shared epoch | received in the initiation response | false | true | | true |
+| `enrollment-epoch-rrp-configured.pv` | shared epoch | from its own configuration | true | | | true |
+
+`enrollment-rrp-from-initiate.pv` also asks Q2 and Q3; both are false, by the same trace as Q1.
+
+What the rows show. An identity received in the initiation response keeps any one Evidence to one
+server: the server the Attester bound is the only one that can issue (B1, B2). The conduit,
+however, chooses that server, so Q1 fails with a fresh Handle and with an epoch alike: it can
+initiate at S2, hand S2's response to the Attester, and S2 issues. Only an identity from the
+Attester's own configuration gives Q1. With a fresh Handle per server session the Handle alone
+already keeps Evidence to one server (U1 holds with no identity bound); with a shared epoch it does
+not, and the same Evidence is accepted by both servers (U1 false) until either identity is bound.
+When `attest-initiate` is completed locally there is no response to take the identity from, so
+configuration is the only source there.
+
+These six models set ProVerif's `preciseActions`. Without it, ProVerif lets one Attester session
+read two different initiation responses and reports U1 as "cannot be proved", with no attack trace,
+in three of them; `results/proverif-20260926T231625Z-rrp-source-without-preciseActions.txt` is that
+run, of the first five. Every other result is the same with or without the setting.
 
 ## What is modelled
 
