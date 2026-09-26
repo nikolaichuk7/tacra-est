@@ -1,0 +1,56 @@
+attestation-initiation-response = {
+  freshness_kind: freshness-kind,
+  ? handle: bstr,              ; REQUIRED for present-*, else absent
+  server_id: tstr,
+  ? expires_in: uint,
+  ? max_age: uint,
+  mode: "enroll" / "retrieve",
+  ? acceptable_csk: [+ tstr],  ; when mode is "enroll"
+  ? acceptable_cek: [+ tstr],  ; when mode is "retrieve"
+  ? acceptable_evidence: [+ tstr],
+}
+
+binding = {
+  method: "binding-input",
+  hash: "sha512" / "sha384" / "sha256",
+}
+
+freshness-kind = "absent-timestamp" / "absent-none" / "absent-epoch"
+               / "present-nonce" / "present-epoch"
+
+request-common = (
+  freshness_kind: freshness-kind,
+  target: tstr,                ; the Target (TACRA)
+  credential_type: tstr,
+  ? handle: bstr,
+  evidence: bstr,              ; opaque
+  ? profile: tstr,             ; format of evidence
+  binding: binding,
+  ? credential_hint: tstr,
+)
+
+attested-enrollment-request = {
+  request-common,
+  csr: bstr,                   ; PKCS#10, DER
+}
+
+attested-retrieval-request = {
+  request-common,
+  cek_pub: bstr,               ; SubjectPublicKeyInfo, DER
+}
+
+encrypted-credential-bundle = {
+  container: "hpke-auth" / "cms-signed-enveloped"
+           / "cose-sign1-encrypt0",
+  ? suite: { kem: tstr, kdf: tstr, aead: tstr },
+  ? enc: bstr,                 ; HPKE encapsulated key
+  ciphertext: bstr,
+  aad: {
+    group_id: tstr,
+    server_id: tstr,
+    target: tstr,
+    ? handle: bstr,
+    ? credential_hint: tstr,
+  },
+  ? sender_pub: bstr,          ; names the Vault's origin key
+}
