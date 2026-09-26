@@ -1,6 +1,6 @@
 # The EST profile of TACRA in ProVerif: three attacks, the proofs, and the assumptions
 
-`gen.py` writes eight models from one template so that the "as in -00" and "as in the pull
+`gen.py` writes nine models from one template so that the "as in -00" and "as in the pull
 request" variants differ only in the lines that the pull request changes. `results/` holds the
 ProVerif 2.05 output, unedited.
 
@@ -15,13 +15,14 @@ stays secret.
 | `enrollment-nobind.pv` | draft -00: Handle and CSR | false | false | false | | |
 | `enrollment-serveronly.pv` | Handle, server_id, CSR (no Target) | true | **false** | false | | |
 | `enrollment-bind.pv` | the pull request: Handle, server_id, Target, CSR | true | true | true | | |
+| `enrollment-bind-nocompare.pv` | as above, but the Attester does not compare the wire server_id; it binds the server identity from its own CAI configuration | true | true | true | | |
 | `enrollment-bind-compromised-s2.pv` | as above; server 2 and its CA key are the attacker's | | true (for server 1) | | | |
 | `enrollment-bind-tee-key-leaked.pv` | as above; the TEE attestation key has leaked | false | false | false | | |
 | `retrieval-base.pv` | draft -00: bundle encrypted to CEKpub | | | | false | true |
 | `retrieval-auth.pv` | the pull request: HPKE `mode_auth` | | | | true | true |
 | `retrieval-auth-compromised-vault2.pv` | as above; Vault 2's keys are the attacker's | | | | true | true |
 
-What the rows show. Binding server_id alone (the second row) stops a conduit from taking Evidence
+What the rows show. The Attester's comparison of the server_id it receives with the one it is configured for is not what carries the guarantee: without it (fourth row) all three queries still hold, because the Attester binds the server identity from its own configuration and every server recomputes the binding with its own. The CAS can therefore stay transparent to the Attester, as TACRA intends; what the binding needs is a server identity from inside the Attester's trust boundary. Binding server_id alone (the second row) stops a conduit from taking Evidence
 to another server, but not from obtaining, at the right server, a credential for a Target the
 Attester did not ask for; the Target must be bound too (third row). A compromised second server
 or Vault does not weaken the guarantee for the honest one. A leaked TEE attestation key breaks

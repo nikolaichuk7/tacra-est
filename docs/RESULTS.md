@@ -23,13 +23,14 @@ SEV firmware 1.58 build 1, TCB (boot loader 4, TEE 0, SNP 29, microcode 222) and
 (Ubuntu `7.0.0-1011-gcp`); the current hardware run happened to land on the same chip as
 20260926T185426Z.
 
-## 1. Formal model (ProVerif 2.05), `formal/results/proverif-20260926T202122Z.txt`
+## 1. Formal model (ProVerif 2.05), `formal/results/proverif-20260926T224122Z.txt`
 
 | model | binding | Q1 | Q2 | Q3 | R1 | S |
 |---|---|---|---|---|---|---|
 | `enrollment-nobind` | draft -00: Handle and CSR | false | false | false | | |
 | `enrollment-serveronly` | Handle, `server_id`, CSR | true | **false** | false | | |
 | `enrollment-bind` | the pull request: Handle, `server_id`, Target, CSR | true | true | true | | |
+| `enrollment-bind-nocompare` | as above, no Attester-side comparison of the wire `server_id`; bound identity from the CAI configuration | true | true | true | | |
 | `enrollment-bind-compromised-s2` | as above; server 2 and its CA key are the attacker's | | true (server 1) | | | |
 | `enrollment-bind-tee-key-leaked` | as above; the TEE attestation key has leaked | false | false | false | | |
 | `retrieval-base` | draft -00: bundle encrypted to CEKpub | | | | false | true |

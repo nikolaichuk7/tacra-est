@@ -59,7 +59,7 @@ event AttesterUses(bitstring, bitstring, bitstring).
 """
 
 def enrollment(variant: str) -> str:
-    # variant: nobind (-00) | serveronly | bind | bind-compromised-s2 | bind-tee-key-leaked
+    # variant: nobind (-00) | serveronly | bind | bind-nocompare | bind-compromised-s2 | bind-tee-key-leaked
     if variant == "nobind":
         a_in = "in(c, n: bitstring);"
         a_rd = "h((n, csr))"
@@ -74,10 +74,15 @@ def enrollment(variant: str) -> str:
         title = "Enrollment with server_id bound but not the Target"
     else:
         a_in = "in(c, (n: bitstring, sid: bitstring));\n  if sid = srv then"
+        if variant == "bind-nocompare":
+            # No Attester-side comparison of the wire server_id: the Attester binds the server
+            # identity from its own CAI configuration (srv), and TACRA keeps the CAS transparent.
+            a_in = "in(c, (n: bitstring, sid: bitstring));"
         a_rd = "h((n, srv, tgt, csr))"
         s_out = "out(c, (n, id));"
         s_rd = "h((n, id, tgt, csr))"
         title = {"bind": "Enrollment with the pull request's binding: Handle, server_id, Target and CSR",
+                 "bind-nocompare": "Enrollment with the full binding and no Attester-side server_id comparison: the bound server identity comes from the CAI configuration, the CAS stays transparent",
                  "bind-compromised-s2": "Enrollment with the full binding; the second server and its CA key are the attacker's",
                  "bind-tee-key-leaked": "Enrollment with the full binding; the TEE attestation key has leaked (an assumption made explicit)"}[variant]
     if variant == "bind-compromised-s2":
@@ -175,6 +180,7 @@ if __name__ == "__main__":
         "enrollment-nobind.pv": enrollment("nobind"),
         "enrollment-serveronly.pv": enrollment("serveronly"),
         "enrollment-bind.pv": enrollment("bind"),
+        "enrollment-bind-nocompare.pv": enrollment("bind-nocompare"),
         "enrollment-bind-compromised-s2.pv": enrollment("bind-compromised-s2"),
         "enrollment-bind-tee-key-leaked.pv": enrollment("bind-tee-key-leaked"),
         "retrieval-base.pv": retrieval("base"),
