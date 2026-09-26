@@ -1,0 +1,2 @@
+{"handle": "8W2_zZW6rjxQOpMXagyE409Yp3SKiyxprH4vDYGkzSg", "mode": "enroll", "resource": "attest-initiate", "t": 1790441810.2889972}
+{"checks": {"measurement_allowed": true, "report_signature": true, "root_is_the_configured_mock_root": true}, "chip_id": "0001020304050607", "corr": "c8860daf643e", "measurement": "6d6f636b2d6d6561", "ms_ca": 0.25, "ms_total": 0.3933750092983246, "ms_verifier": 0.11687499284744263, "outcome": 200, "platform": "mock", "platform_form": "direct", "report_id": "12ceeb2a3bef8769", "resource": "/.well-known/est/attest-enroll", "t": 1790441810.290706}

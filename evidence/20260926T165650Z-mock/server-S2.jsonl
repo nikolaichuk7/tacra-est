@@ -1,0 +1,2 @@
+{"handle": "yPs2u42FWH6jNiawFEj6quZzaGhw6XLr9qFMykQLUlc", "mode": "enroll", "resource": "attest-initiate", "t": 1790441810.286449}
+{"chip_id": "0001020304050607", "corr": "d3b9c5d778c0", "expected": "0dad4a7024cc9781dbe3030086e1a5a4", "got": "a635b2bc70f12331c32e805fd2c965eb", "ms_verifier": 0.12166698276996613, "outcome": 403, "platform_form": "direct", "reason": "binding-mismatch", "resource": "/.well-known/est/attest-enroll", "t": 1790441810.2879949}

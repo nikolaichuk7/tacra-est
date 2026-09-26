@@ -1,0 +1,624 @@
+### proverif version
+Proverif 2.05. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre
+### date
+2026-09-26T16:54:08Z
+### enrollment-nobind.pv
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let target: bitstring = id1 in
+    {6}new csk: skey;
+    {7}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {8}in(c, n: bitstring);
+    {9}event AttesterIntends(target,csr);
+    {10}let rd: bitstring = h((n,csr)) in
+    {11}let ev: bitstring = sign((meas,rd),tk) in
+    {12}out(c, (csr,ev))
+) | (
+    {13}!
+    {14}let id: bitstring = id1 in
+    {15}let ca: skey = ca1 in
+    {16}new n_1: bitstring;
+    {17}out(c, n_1);
+    {18}in(c, (csr_1: bitstring,ev_1: bitstring));
+    {19}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {20}if (m = meas) then
+    {21}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {22}let pk2b(pkc: pkey) = pkcb in
+    {23}if (checksig(pop,pkc) = pkcb) then
+    {24}if (rd_1 = h((n_1,csr_1))) then
+    {25}event Issued(id,csr_1);
+    {26}out(c, sign((id,pkcb),ca))
+) | (
+    {27}!
+    {28}let id_1: bitstring = id2 in
+    {29}let ca_1: skey = ca2 in
+    {30}new n_2: bitstring;
+    {31}out(c, n_2);
+    {32}in(c, (csr_2: bitstring,ev_2: bitstring));
+    {33}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {34}if (m_1 = meas) then
+    {35}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {36}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {37}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {38}if (rd_2 = h((n_2,csr_2))) then
+    {39}event Issued(id_1,csr_2);
+    {40}out(c, sign((id_1,pkcb_1),ca_1))
+)
+
+File "enrollment-nobind.pv", line 46, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {6}new csk: skey;
+    {8}in(c, n: bitstring);
+    {7}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let target: bitstring = id1 in
+    {9}event AttesterIntends(target,csr);
+    {10}let rd: bitstring = h((n,csr)) in
+    {11}let ev: bitstring = sign((meas,rd),tk) in
+    {12}out(c, (csr,ev))
+) | (
+    {13}!
+    {16}new n_1: bitstring;
+    {17}out(c, n_1);
+    {18}in(c, (csr_1: bitstring,ev_1: bitstring));
+    {19}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {20}if (m = meas) then
+    {21}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {22}let pk2b(pkc: pkey) = pkcb in
+    {23}if (checksig(pop,pkc) = pkcb) then
+    {24}if (rd_1 = h((n_1,csr_1))) then
+    {14}let id: bitstring = id1 in
+    {25}event Issued(id,csr_1);
+    {15}let ca: skey = ca1 in
+    {26}out(c, sign((id,pkcb),ca))
+) | (
+    {27}!
+    {30}new n_2: bitstring;
+    {31}out(c, n_2);
+    {32}in(c, (csr_2: bitstring,ev_2: bitstring));
+    {33}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {34}if (m_1 = meas) then
+    {35}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {36}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {37}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {38}if (rd_2 = h((n_2,csr_2))) then
+    {28}let id_1: bitstring = id2 in
+    {39}event Issued(id_1,csr_2);
+    {29}let ca_1: skey = ca2 in
+    {40}out(c, sign((id_1,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_1,x)) ==> event(AttesterIntends(sid_1,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_1,x)) ==> event(AttesterIntends(sid_1,x))
+goal reachable: b-event(AttesterIntends(id1,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id2,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_3 = n_2[!1 = @sid_1]
+
+1. The message n_3 may be sent to the attacker at output {31}.
+attacker(n_3).
+
+2. The message n_3 that the attacker may have by 1 may be received at input {8}.
+The event AttesterIntends(id1,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {9}.
+So the message ((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {12}.
+attacker(((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+3. By 2, the attacker may know ((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-2-tuple the attacker may obtain sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+4. The attacker has some term n_4.
+attacker(n_4).
+
+5. The message n_4 that the attacker may have by 4 may be received at input {8}.
+The event AttesterIntends(id1,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {9}.
+So the message ((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {12}.
+attacker(((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+6. By 5, the attacker may know ((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 1-proj-2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+7. By 6, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+8. By 6, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+9. By 8, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+10. By 9, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+11. By 10, the attacker may know pk2b(pk(csk_1)).
+By 7, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+12. By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 3, the attacker may know sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 2-tuple the attacker may obtain ((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker(((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+13. The message ((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {32}.
+So event Issued(id2,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {39}.
+event(Issued(id2,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. By 13, event(Issued(id2,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+Unified n_4 with n_2[!1 = @sid_1]
+The clause after UnifyDerivationPrecise is
+b-event(AttesterIntends(id1,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid])))) -> event(Issued(id2,(pk2b(pk(csk[!1 = @sid])),sign(pk2b(pk(csk[!1 = @sid])),csk[!1 = @sid]))))
+This clause still contradicts the query.
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new n_2: bitstring creating n_5 at {30} in copy a
+
+out(c, ~M_3) with ~M_3 = n_5 at {31} in copy a
+
+new csk: skey creating csk_2 at {6} in copy a_1
+
+in(c, ~M_3) with ~M_3 = n_5 at {8} in copy a_1
+
+event AttesterIntends(id1,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {9} in copy a_1
+
+out(c, ((pk2b(~M_4),~M_5),~M_6)) with ~M_4 = pk(csk_2), ~M_5 = sign(pk2b(pk(csk_2)),csk_2), ~M_6 = sign((meas,h((n_5,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {12} in copy a_1
+
+in(c, ((pk2b(~M_4),~M_5),~M_6)) with ~M_4 = pk(csk_2), ~M_5 = sign(pk2b(pk(csk_2)),csk_2), ~M_6 = sign((meas,h((n_5,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {32} in copy a
+
+event Issued(id2,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {39} in copy a (goal)
+
+The event Issued(id2,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {39} in copy a.
+A trace has been found.
+RESULT event(Issued(sid_1,x)) ==> event(AttesterIntends(sid_1,x)) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_1,x)) ==> event(AttesterIntends(sid_1,x)) is false.
+
+--------------------------------------------------------------
+
+### enrollment-bind.pv
+File "enrollment-bind.pv", line 53, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let target: bitstring = id1 in
+    {6}new csk: skey;
+    {7}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {8}in(c, (n: bitstring,sid_1: bitstring));
+    {9}if (sid_1 = target) then
+    {10}event AttesterIntends(target,csr);
+    {11}let rd: bitstring = h((n,target,csr)) in
+    {12}let ev: bitstring = sign((meas,rd),tk) in
+    {13}out(c, (csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}new n_1: bitstring;
+    {18}out(c, (n_1,id));
+    {19}in(c, (csr_1: bitstring,ev_1: bitstring));
+    {20}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {21}if (m = meas) then
+    {22}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {23}let pk2b(pkc: pkey) = pkcb in
+    {24}if (checksig(pop,pkc) = pkcb) then
+    {25}if (rd_1 = h((n_1,id,csr_1))) then
+    {26}event Issued(id,csr_1);
+    {27}out(c, sign((id,pkcb),ca))
+) | (
+    {28}!
+    {29}let id_1: bitstring = id2 in
+    {30}let ca_1: skey = ca2 in
+    {31}new n_2: bitstring;
+    {32}out(c, (n_2,id_1));
+    {33}in(c, (csr_2: bitstring,ev_2: bitstring));
+    {34}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {35}if (m_1 = meas) then
+    {36}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {37}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {38}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {39}if (rd_2 = h((n_2,id_1,csr_2))) then
+    {40}event Issued(id_1,csr_2);
+    {41}out(c, sign((id_1,pkcb_1),ca_1))
+)
+
+File "enrollment-bind.pv", line 46, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {6}new csk: skey;
+    {8}in(c, (n: bitstring,sid_1: bitstring));
+    {5}let target: bitstring = id1 in
+    {9}if (sid_1 = target) then
+    {7}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {10}event AttesterIntends(target,csr);
+    {11}let rd: bitstring = h((n,target,csr)) in
+    {12}let ev: bitstring = sign((meas,rd),tk) in
+    {13}out(c, (csr,ev))
+) | (
+    {14}!
+    {17}new n_1: bitstring;
+    {15}let id: bitstring = id1 in
+    {18}out(c, (n_1,id));
+    {19}in(c, (csr_1: bitstring,ev_1: bitstring));
+    {20}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {21}if (m = meas) then
+    {22}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {23}let pk2b(pkc: pkey) = pkcb in
+    {24}if (checksig(pop,pkc) = pkcb) then
+    {25}if (rd_1 = h((n_1,id,csr_1))) then
+    {26}event Issued(id,csr_1);
+    {16}let ca: skey = ca1 in
+    {27}out(c, sign((id,pkcb),ca))
+) | (
+    {28}!
+    {31}new n_2: bitstring;
+    {29}let id_1: bitstring = id2 in
+    {32}out(c, (n_2,id_1));
+    {33}in(c, (csr_2: bitstring,ev_2: bitstring));
+    {34}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {35}if (m_1 = meas) then
+    {36}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {37}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {38}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {39}if (rd_2 = h((n_2,id_1,csr_2))) then
+    {40}event Issued(id_1,csr_2);
+    {30}let ca_1: skey = ca2 in
+    {41}out(c, sign((id_1,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_2,x)) ==> event(AttesterIntends(sid_2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,x)) ==> event(AttesterIntends(sid_2,x))
+goal reachable: b-event(AttesterIntends(id1,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) -> event(Issued(id1,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+RESULT event(Issued(sid_2,x)) ==> event(AttesterIntends(sid_2,x)) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,x)) ==> event(AttesterIntends(sid_2,x)) is true.
+
+--------------------------------------------------------------
+
+### retrieval-base.pv
+File "retrieval-base.pv", line 51, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(vk1));
+{3}out(c, pk(vk2));
+(
+    {4}!
+    {5}let target: bitstring = id1 in
+    {6}let vpk: pkey = pk(vk1) in
+    {7}new cek: skey;
+    {8}in(c, (n: bitstring,sid_1: bitstring));
+    {9}if (sid_1 = target) then
+    {10}let rd: bitstring = h((n,target,pk2b(pk(cek)))) in
+    {11}let ev: bitstring = sign((meas,rd),tk) in
+    {12}out(c, (pk2b(pk(cek)),ev));
+    {13}in(c, b: bitstring);
+    {14}let s: bitstring = adec(b,cek) in
+    {15}event AttesterUses(target,s)
+) | (
+    {16}!
+    {17}let id: bitstring = id1 in
+    {18}let vk: skey = vk1 in
+    {19}let sec: bitstring = secret1 in
+    {20}new n_1: bitstring;
+    {21}out(c, (n_1,id));
+    {22}in(c, (pkcb: bitstring,ev_1: bitstring));
+    {23}let pk2b(pkc: pkey) = pkcb in
+    {24}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {25}if (m = meas) then
+    {26}if (rd_1 = h((n_1,id,pkcb))) then
+    {27}event VaultReleased(id,sec);
+    {28}out(c, aenc(sec,pkc))
+) | (
+    {29}!
+    {30}let id_1: bitstring = id2 in
+    {31}let vk_1: skey = vk2 in
+    {32}let sec_1: bitstring = secret2 in
+    {33}new n_2: bitstring;
+    {34}out(c, (n_2,id_1));
+    {35}in(c, (pkcb_1: bitstring,ev_2: bitstring));
+    {36}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {37}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}if (rd_2 = h((n_2,id_1,pkcb_1))) then
+    {40}event VaultReleased(id_1,sec_1);
+    {41}out(c, aenc(sec_1,pkc_1))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(vk1));
+{3}out(c, pk(vk2));
+(
+    {4}!
+    {7}new cek: skey;
+    {8}in(c, (n: bitstring,sid_1: bitstring));
+    {5}let target: bitstring = id1 in
+    {9}if (sid_1 = target) then
+    {10}let rd: bitstring = h((n,target,pk2b(pk(cek)))) in
+    {11}let ev: bitstring = sign((meas,rd),tk) in
+    {12}out(c, (pk2b(pk(cek)),ev));
+    {13}in(c, b: bitstring);
+    {14}let s: bitstring = adec(b,cek) in
+    {15}event AttesterUses(target,s)
+) | (
+    {16}!
+    {20}new n_1: bitstring;
+    {17}let id: bitstring = id1 in
+    {21}out(c, (n_1,id));
+    {22}in(c, (pkcb: bitstring,ev_1: bitstring));
+    {23}let pk2b(pkc: pkey) = pkcb in
+    {24}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {25}if (m = meas) then
+    {26}if (rd_1 = h((n_1,id,pkcb))) then
+    {19}let sec: bitstring = secret1 in
+    {27}event VaultReleased(id,sec);
+    {28}out(c, aenc(sec,pkc))
+) | (
+    {29}!
+    {33}new n_2: bitstring;
+    {30}let id_1: bitstring = id2 in
+    {34}out(c, (n_2,id_1));
+    {35}in(c, (pkcb_1: bitstring,ev_2: bitstring));
+    {36}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {37}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}if (rd_2 = h((n_2,id_1,pkcb_1))) then
+    {32}let sec_1: bitstring = secret2 in
+    {40}event VaultReleased(id_1,sec_1);
+    {41}out(c, aenc(sec_1,pkc_1))
+)
+
+-- Query event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1))
+goal reachable: attacker(s_1) -> event(AttesterUses(id1,s_1))
+
+Derivation:
+Abbreviations:
+cek_1 = cek[!1 = @sid]
+
+1. Using the function id1 the attacker may obtain id1.
+attacker(id1).
+
+2. The attacker has some term n_3.
+attacker(n_3).
+
+3. By 2, the attacker may know n_3.
+By 1, the attacker may know id1.
+Using the function 2-tuple the attacker may obtain (n_3,id1).
+attacker((n_3,id1)).
+
+4. The attacker has some term n_4.
+attacker(n_4).
+
+5. By 4, the attacker may know n_4.
+By 1, the attacker may know id1.
+Using the function 2-tuple the attacker may obtain (n_4,id1).
+attacker((n_4,id1)).
+
+6. The message (n_4,id1) that the attacker may have by 5 may be received at input {8}.
+So the message (pk2b(pk(cek_1)),sign((meas,h((n_4,id1,pk2b(pk(cek_1))))),tk[])) may be sent to the attacker at output {12}.
+attacker((pk2b(pk(cek_1)),sign((meas,h((n_4,id1,pk2b(pk(cek_1))))),tk[]))).
+
+7. By 6, the attacker may know (pk2b(pk(cek_1)),sign((meas,h((n_4,id1,pk2b(pk(cek_1))))),tk[])).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(cek_1)).
+attacker(pk2b(pk(cek_1))).
+
+8. By 7, the attacker may know pk2b(pk(cek_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(cek_1).
+attacker(pk(cek_1)).
+
+9. We assume as hypothesis that
+attacker(s_1).
+
+10. By 9, the attacker may know s_1.
+By 8, the attacker may know pk(cek_1).
+Using the function aenc the attacker may obtain aenc(s_1,pk(cek_1)).
+attacker(aenc(s_1,pk(cek_1))).
+
+11. The message (n_3,id1) that the attacker may have by 3 may be received at input {8}.
+The message aenc(s_1,pk(cek_1)) that the attacker may have by 10 may be received at input {13}.
+So event AttesterUses(id1,s_1) may be executed at {15}.
+event(AttesterUses(id1,s_1)).
+
+12. By 11, event(AttesterUses(id1,s_1)).
+The goal is reached, represented in the following fact:
+event(AttesterUses(id1,s_1)).
+
+
+Unified n_4 with n_3
+The clause after UnifyDerivationPrecise is
+attacker(s_1) -> event(AttesterUses(id1,s_1))
+This clause still contradicts the query.
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(vk1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(vk2) at {3}
+
+new cek: skey creating cek_2 at {7} in copy a
+
+in(c, (a_1,id1)) at {8} in copy a
+
+out(c, (pk2b(~M_3),~M_4)) with ~M_3 = pk(cek_2), ~M_4 = sign((meas,h((a_1,id1,pk2b(pk(cek_2))))),tk) at {12} in copy a
+
+in(c, aenc(a_2,~M_3)) with aenc(a_2,~M_3) = aenc(a_2,pk(cek_2)) at {13} in copy a
+
+event AttesterUses(id1,a_2) at {15} in copy a (goal)
+
+The event AttesterUses(id1,a_2) is executed at {15} in copy a.
+A trace has been found.
+RESULT event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1)) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1)) is false.
+
+--------------------------------------------------------------
+
+### retrieval-auth.pv
+File "retrieval-auth.pv", line 51, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(vk1));
+{3}out(c, pk(vk2));
+(
+    {4}!
+    {5}let target: bitstring = id1 in
+    {6}let vpk: pkey = pk(vk1) in
+    {7}new cek: skey;
+    {8}in(c, (n: bitstring,sid_1: bitstring));
+    {9}if (sid_1 = target) then
+    {10}let rd: bitstring = h((n,target,pk2b(pk(cek)))) in
+    {11}let ev: bitstring = sign((meas,rd),tk) in
+    {12}out(c, (pk2b(pk(cek)),ev));
+    {13}in(c, b: bitstring);
+    {14}let s: bitstring = adec_auth(b,cek,vpk) in
+    {15}event AttesterUses(target,s)
+) | (
+    {16}!
+    {17}let id: bitstring = id1 in
+    {18}let vk: skey = vk1 in
+    {19}let sec: bitstring = secret1 in
+    {20}new n_1: bitstring;
+    {21}out(c, (n_1,id));
+    {22}in(c, (pkcb: bitstring,ev_1: bitstring));
+    {23}let pk2b(pkc: pkey) = pkcb in
+    {24}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {25}if (m = meas) then
+    {26}if (rd_1 = h((n_1,id,pkcb))) then
+    {27}event VaultReleased(id,sec);
+    {28}out(c, aenc_auth(sec,pkc,vk))
+) | (
+    {29}!
+    {30}let id_1: bitstring = id2 in
+    {31}let vk_1: skey = vk2 in
+    {32}let sec_1: bitstring = secret2 in
+    {33}new n_2: bitstring;
+    {34}out(c, (n_2,id_1));
+    {35}in(c, (pkcb_1: bitstring,ev_2: bitstring));
+    {36}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {37}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}if (rd_2 = h((n_2,id_1,pkcb_1))) then
+    {40}event VaultReleased(id_1,sec_1);
+    {41}out(c, aenc_auth(sec_1,pkc_1,vk_1))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(vk1));
+{3}out(c, pk(vk2));
+(
+    {4}!
+    {7}new cek: skey;
+    {8}in(c, (n: bitstring,sid_1: bitstring));
+    {5}let target: bitstring = id1 in
+    {9}if (sid_1 = target) then
+    {10}let rd: bitstring = h((n,target,pk2b(pk(cek)))) in
+    {11}let ev: bitstring = sign((meas,rd),tk) in
+    {12}out(c, (pk2b(pk(cek)),ev));
+    {13}in(c, b: bitstring);
+    {6}let vpk: pkey = pk(vk1) in
+    {14}let s: bitstring = adec_auth(b,cek,vpk) in
+    {15}event AttesterUses(target,s)
+) | (
+    {16}!
+    {20}new n_1: bitstring;
+    {17}let id: bitstring = id1 in
+    {21}out(c, (n_1,id));
+    {22}in(c, (pkcb: bitstring,ev_1: bitstring));
+    {23}let pk2b(pkc: pkey) = pkcb in
+    {24}let (m: bitstring,rd_1: bitstring) = checksig(ev_1,pk(tk)) in
+    {25}if (m = meas) then
+    {26}if (rd_1 = h((n_1,id,pkcb))) then
+    {19}let sec: bitstring = secret1 in
+    {27}event VaultReleased(id,sec);
+    {18}let vk: skey = vk1 in
+    {28}out(c, aenc_auth(sec,pkc,vk))
+) | (
+    {29}!
+    {33}new n_2: bitstring;
+    {30}let id_1: bitstring = id2 in
+    {34}out(c, (n_2,id_1));
+    {35}in(c, (pkcb_1: bitstring,ev_2: bitstring));
+    {36}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {37}let (m_1: bitstring,rd_2: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}if (rd_2 = h((n_2,id_1,pkcb_1))) then
+    {32}let sec_1: bitstring = secret2 in
+    {40}event VaultReleased(id_1,sec_1);
+    {31}let vk_1: skey = vk2 in
+    {41}out(c, aenc_auth(sec_1,pkc_1,vk_1))
+)
+
+-- Query event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1))
+goal reachable: b-event(VaultReleased(id1,secret1[])) -> event(AttesterUses(id1,secret1[]))
+RESULT event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1)) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(AttesterUses(vid,s_1)) ==> event(VaultReleased(vid,s_1)) is true.
+
+--------------------------------------------------------------
+
