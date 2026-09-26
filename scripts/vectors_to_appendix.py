@@ -42,7 +42,7 @@ def block(title, obj):
 def main(path):
     v = json.load(open(path))
     print("# Example Exchange {#examples}")
-    print('{:numbered="false"}')
+
     print("")
     print("Messages of one enrollment and one retrieval as produced by the reference implementation "
           "[TACRA-EST-IMPL] with a %s Attester (run %s). Byte strings longer than 80 characters are "
