@@ -47,7 +47,7 @@ def main(path):
 
     print("")
     print("Messages of one enrollment and one retrieval as produced by the reference implementation "
-          "[TACRA-EST-IMPL] with a %s Attester (run %s). Byte strings longer than 80 characters are "
+          "[TACRA-EST-IMPL] with a %s Attester (run %s). Byte strings longer than 40 characters are "
           "shown as their length and SHA-256; the full messages are in the repository." % (
               "live AMD SEV-SNP" if v.get("tee") == "sev-snp" else "mock", v.get("stamp")))
     print("")
