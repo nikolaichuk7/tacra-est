@@ -18,14 +18,20 @@ import os
 import subprocess
 import tempfile
 import json
+import urllib.request
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, utils as asn1
 
-from common import b64u_dec, parse_snp_report, SNP_SIGNED_LEN, SNP_REPORT_LEN, SNP_KNOWN_VERSIONS
+from common import b64u_dec, parse_snp_report, kds_vcek_url, SNP_SIGNED_LEN, SNP_REPORT_LEN, SNP_KNOWN_VERSIONS
 
 HWID_OID = "1.3.6.1.4.1.3704.1.4"
+_UA = {"User-Agent": "tacra-est-verifier/0.1"}
+
+
+def _kds_get(url: str, timeout: int = 40) -> bytes:
+    return urllib.request.urlopen(urllib.request.Request(url, headers=_UA), timeout=timeout).read()
 
 
 def _load_cert(b: bytes) -> x509.Certificate:
@@ -68,11 +74,14 @@ def chain_ok_openssl(vcek_der: bytes, chain_pem: bytes, pinned_ark_pem: bytes | 
 
 class Verifier:
     def __init__(self, pinned_ark_pem: bytes | None = None, allowed_measurements: set[bytes] | None = None,
-                 mock_root_pem: str | None = None, refuse_debug: bool = True):
+                 mock_root_pem: str | None = None, refuse_debug: bool = True,
+                 product: str = "Milan", allow_kds_fetch: bool = True):
         self.pinned_ark_pem = pinned_ark_pem
         self.allowed_measurements = allowed_measurements
         self.mock_root_pem = mock_root_pem
         self.refuse_debug = refuse_debug
+        self.product = product
+        self.allow_kds_fetch = allow_kds_fetch      # the Verifier has network; the Attester does not
 
     # -- entry point -------------------------------------------------------------------------
     def appraise(self, evidence: dict) -> dict:
@@ -101,6 +110,20 @@ class Verifier:
         checks["signature_zero_extended"] = p["signature_zero_extended"]
         signer = p["signing_key"] if p["signing_key"] in ("VCEK", "VLEK", "CSVCEK") else None
         certs = {k: b64u_dec(v) for k, v in (ev.get("certs") or {}).items()}
+        chain_pem = ev.get("chain")
+        # The Attester may send Evidence without the certificate table (Design Goal 8: it has no
+        # network). The Verifier fills the gaps from the AMD KDS: the VCEK by CHIP_ID and reported
+        # TCB, and the [ASK, ARK] chain. VLEK-signed reports have no KDS VCEK endpoint.
+        if self.allow_kds_fetch and signer == "VCEK" and signer not in certs and not p["chip_id_zero"]:
+            try:
+                certs["VCEK"] = _kds_get(kds_vcek_url(self.product, p["chip_id"], p["reported_tcb"]))
+            except Exception:
+                pass
+        if self.allow_kds_fetch and not chain_pem:
+            try:
+                chain_pem = _kds_get("https://kdsintf.amd.com/vcek/v1/%s/cert_chain" % self.product).decode("ascii")
+            except Exception:
+                chain_pem = None
         cert_der = certs.get(signer) if signer else None
         checks["signing_certificate_present"] = cert_der is not None
         sig_ok = False
@@ -113,8 +136,8 @@ class Verifier:
                 hwid_ok = bool(hw) and hw[0].value.value[-64:] == p["chip_id"]
         checks["report_signature"] = sig_ok
         chain_ok, chain_detail = (False, "no chain")
-        if cert_der and ev.get("chain"):
-            chain_ok, chain_detail = chain_ok_openssl(cert_der, ev["chain"].encode("ascii"), self.pinned_ark_pem)
+        if cert_der and chain_pem:
+            chain_ok, chain_detail = chain_ok_openssl(cert_der, chain_pem.encode("ascii"), self.pinned_ark_pem)
         checks["chain_to_ark"] = chain_ok
         if hwid_ok is not None:
             checks["hwid_equals_chip_id"] = hwid_ok

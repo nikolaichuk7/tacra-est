@@ -4,7 +4,7 @@ sev-guest driver) or a mock for running the protocol without hardware.
 Both produce Evidence in the same JSON shape:
 
   {"type": "sev-snp", "report": b64u(1184-byte report), "certs": {"VCEK": b64u(DER), ...},
-   "chain": PEM (ASK + ARK from the AMD KDS), "platform_form": "direct"}
+   "chain": PEM (ASK + ARK, when the host's certificate table carries them), "platform_form": "direct"}
 
   {"type": "mock", "report": b64u(canonical JSON of the mock report), "sig": b64u(ECDSA-P256
    signature over those bytes), "pub": PEM (the mock root's public key), "platform_form": "direct"}
@@ -12,19 +12,24 @@ Both produce Evidence in the same JSON shape:
 The only guest-chosen content of a SEV-SNP report is the 64-byte REPORT_DATA; that is where the
 binding value goes (pull request, "Binding Input"). The mock mirrors that: it signs a report whose
 report_data is the 64 bytes it was given, and nothing else in it is under the caller's control.
+
+The Attester makes no network request (TACRA Design Goal 8: MUST NOT assume the Attester has
+network access). It uses only the certificate table the host attaches to SNP_GET_EXT_REPORT; when
+the host does not populate a certificate, the Evidence omits it and the Verifier, which does have
+network access, fetches it from the AMD Key Distribution Service.
 """
+import base64
 import ctypes
 import fcntl
 import json
 import os
 import struct
-import urllib.request
 import uuid
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
-from common import SNP_REPORT_LEN, b64u, canonical_json, kds_vcek_url, parse_snp_report
+from common import SNP_REPORT_LEN, b64u, canonical_json, parse_snp_report
 
 # --- Linux sev-guest UAPI (include/uapi/linux/sev-guest.h) ---------------------------------
 
@@ -55,12 +60,13 @@ CERT_GUIDS = {
     "4ab7b379-bbac-4fe4-a02f-05aef327c782": "ASK",
     "c0b406a4-a803-4952-9743-3fb6014cd0ae": "ARK",
 }
-KDS_CHAIN = "https://kdsintf.amd.com/vcek/v1/Milan/cert_chain"
-UA = {"User-Agent": "tacra-est/0.1 (+https://github.com/nikolaichuk7/tacra-est)"}
-
-
-def _get(url: str, timeout: int = 40) -> bytes:
-    return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout).read()
+def _der_to_pem(der: bytes) -> str:
+    """Wrap a DER certificate as PEM without parsing it: AMD's ASK and ARK encode the RSA-PSS
+    trailerField explicitly, which the `cryptography` parser rejects, so the Attester never loads
+    them; it only re-encodes the bytes the host gave."""
+    b = base64.b64encode(der).decode("ascii")
+    lines = "\n".join(b[i:i + 64] for i in range(0, len(b), 64))
+    return "-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n" % lines
 
 
 class SnpGuestTEE:
@@ -73,8 +79,6 @@ class SnpGuestTEE:
         self.product = product
         self.key_sel = key_sel
         self.platform_form = "direct"
-        self._chain: str | None = None            # the KDS chain is fetched once per process
-        self._vcek_cache: dict[bytes, bytes] = {}  # VCEK by chip id, when the host gives no table
         self.last_ioctl_ms: float | None = None
 
     def _ioctl(self, request: int, io: _Ioctl) -> str | None:
@@ -129,20 +133,17 @@ class SnpGuestTEE:
                 raise RuntimeError("SNP_GET_REPORT failed: %s (ext: %s, exitinfo2=%#x)" % (err2, err, io.exitinfo2))
             rep = bytes(resp.report[:SNP_REPORT_LEN])
         parsed = parse_snp_report(rep)
-        if "VCEK" not in certs and parsed["signing_key"] == "VCEK":
-            if parsed["chip_id"] not in self._vcek_cache:
-                self._vcek_cache[parsed["chip_id"]] = _get(kds_vcek_url(self.product, parsed["chip_id"], parsed["reported_tcb"]))
-            certs["VCEK"] = self._vcek_cache[parsed["chip_id"]]
-        if self._chain is None:
-            self._chain = _get(KDS_CHAIN).decode("ascii")
-        chain = self._chain
-        return {
+        # The chain is [ASK, ARK] when the host's table carries both; otherwise it is omitted and the
+        # Verifier fetches it. The Attester does not reach the network (Design Goal 8).
+        ev = {
             "type": "sev-snp",
             "report": b64u(rep),
             "certs": {k: b64u(v) for k, v in certs.items()},
-            "chain": chain,
             "platform_form": "direct" if parsed["signing_key"] == "VCEK" and not parsed["mask_chip_key"] else "provider-scoped",
         }
+        if "ASK" in certs and "ARK" in certs:
+            ev["chain"] = _der_to_pem(certs["ASK"]) + _der_to_pem(certs["ARK"])
+        return ev
 
 
 class MockTEE:

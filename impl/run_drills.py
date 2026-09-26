@@ -77,7 +77,7 @@ def drill_enroll(tee, server_id, conduit, vault_origin=None, legacy=False, targe
         if st == 200:
             certs = parse_pkcs7_certs(body)
             cert = a.accept_certificate(certs[0].public_bytes(serialization.Encoding.DER))
-            ext = [e for e in cert.extensions if e.oid.dotted_string == "1.3.6.1.4.1.99999.1"]
+            ext = [e for e in cert.extensions if e.oid.dotted_string == "1.3.6.1.4.1.32473.1"]
             issued_for = json.loads(ext[0].value.value).get("target") if ext else None
             rec["certificate"] = {"subject": cert.subject.rfc4514_string(), "issuer": cert.issuer.rfc4514_string(),
                                   "issued_for_target": issued_for,

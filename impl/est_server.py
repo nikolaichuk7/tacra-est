@@ -7,7 +7,9 @@ Secret Vault behind it, as one process for the reference implementation. The thr
 
 The EST Server is a conduit: it never sees a private key of the Attester's, does not appraise
 Evidence itself (the Verifier does) and does not decide issuance (the CA and the Vault do). It
-correlates the Handle of the second leg with the one it issued in the first.
+does not mint present-nonce Freshness Handles either (the draft forbids the EST Server and Client
+to); the Relying Party mints them, through a FreshnessOriginator, and the EST Server forwards the
+Handle and correlates the two legs.
 
 `attest-initiate` takes the two query parameters of the draft, `target` and `credential_type`. The
 server decides the Credential Acquisition Mode, Enrollment or Retrieval, from its policy for that
@@ -74,7 +76,7 @@ class CredentialAuthority:
                 .not_valid_before(now - datetime.timedelta(minutes=5)).not_valid_after(now + datetime.timedelta(days=1))
                 .add_extension(x509.SubjectAlternativeName([x509.DNSName(san)]), critical=False)
                 .add_extension(x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH]), critical=False)
-                .add_extension(x509.UnrecognizedExtension(x509.ObjectIdentifier("1.3.6.1.4.1.99999.1"),
+                .add_extension(x509.UnrecognizedExtension(x509.ObjectIdentifier("1.3.6.1.4.1.32473.1"),  # RFC 5612 reserves PEN 32473 for documentation
                                canonical_json({"target": target, "measurement": results.get("measurement"), "platform": results.get("platform"),
                                                "platform_form": results.get("platform_form"), "report_id": results.get("report_id")})),
                                critical=False)
@@ -125,6 +127,38 @@ class SecretVault:
 
 
 # ---------------------------------------------------------------------------------------------
+# Freshness Handle originator
+
+class FreshnessOriginator:
+    """The party that mints present-nonce Freshness Handles and correlates them with the second
+    leg. In TACRA the originator is the Verifier or the Relying Party, never the EST Server or
+    Client, which MUST NOT mint present-nonce or present-epoch Handles. Here each Relying Party
+    owns one: the Credential Authority for Enrollment, the Secret Vault for Retrieval."""
+
+    def __init__(self, expires_in: int = 300):
+        self.expires_in = expires_in
+        self.handles: dict[bytes, dict] = {}
+        self.lock = threading.RLock()
+
+    def issue(self, mode: str, target: str, credential_type: str) -> bytes:
+        handle = os.urandom(32)
+        with self.lock:
+            self.handles[handle] = {"issued": time.time(), "mode": mode, "used": False,
+                                    "target": target, "credential_type": credential_type}
+        return handle
+
+    def lookup(self, handle: bytes) -> dict | None:
+        with self.lock:
+            return self.handles.get(handle)
+
+    def consume(self, handle: bytes) -> None:
+        with self.lock:
+            h = self.handles.get(handle)
+            if h:
+                h["used"] = True
+
+
+# ---------------------------------------------------------------------------------------------
 # The server
 
 class ServerState:
@@ -143,10 +177,16 @@ class ServerState:
         self.hash_name = hash_name
         self.legacy_binding = legacy_binding
         self.bundle_auth_mode = bundle_auth_mode
-        self.handles: dict[bytes, dict] = {}
+        # The Relying Party mints the Handle (the EST Server MUST NOT): the CA for Enrollment, the
+        # Vault for Retrieval. The EST Server only forwards it and correlates the two legs.
+        self.ca.freshness = FreshnessOriginator(expires_in)
+        self.vault.freshness = FreshnessOriginator(expires_in)
         self.lock = threading.RLock()   # record() is also called while the lock is held
         self.log_path = log_path
         self.log: list[dict] = []
+
+    def originator(self, mode: str) -> "FreshnessOriginator":
+        return self.ca.freshness if mode == "enroll" else self.vault.freshness
 
     def record(self, entry: dict) -> None:
         entry["t"] = time.time()
@@ -198,9 +238,7 @@ class Handler(BaseHTTPRequestHandler):
         if ctype not in policy["credential_types"]:
             return self._error(403, "unsupported-credential-type", "credential type %r is not provisioned for %r" % (ctype, target), "")
         mode = policy["mechanism"]          # the server decides the mode, from its policy for the Target
-        handle = os.urandom(32)
-        with st.lock:
-            st.handles[handle] = {"issued": time.time(), "mode": mode, "used": False, "target": target, "credential_type": ctype}
+        handle = st.originator(mode).issue(mode, target, ctype)  # minted by the Relying Party, not the EST Server
         acceptable = ["ecdsa-p256-sha256"] if mode == "enroll" else ["DHKEM(X25519,HKDF-SHA256)+HKDF-SHA256+AES-256-GCM"]
         resp = initiation_response("present-nonce", handle, st.server_id, mode, st.expires_in, acceptable,
                                    acceptable_evidence=[PROFILE_SNP, PROFILE_MOCK])
@@ -226,24 +264,23 @@ class Handler(BaseHTTPRequestHandler):
             return self._error(400, "bad-request", "freshness_kind must match attest-initiate (present-nonce)", corr)
         target = req.get("target") or ""
         ctype = req.get("credential_type") or ""
-        # 1. correlate the Handle
+        # 1. correlate the Handle with the one the Relying Party minted at attest-initiate
         handle = b64u_dec(req["handle"]) if req.get("handle") else b""
-        with st.lock:
-            h = st.handles.get(handle)
+        orig = st.originator(mode)
+        with orig.lock:
+            h = orig.lookup(handle)
             if handle and h is None:
-                self._error(403, "unknown-handle", "handle was not issued by this server", corr)
+                self._error(403, "unknown-handle", "handle was not issued for this mode by this server", corr)
                 st.record({"resource": u.path, "corr": corr, "outcome": 403, "reason": "unknown-handle"})
                 return
             if h and h["used"]:
                 self._error(409, "handle-replay", "Freshness Handle already used", corr)
                 st.record({"resource": u.path, "corr": corr, "outcome": 409, "reason": "handle-replay"})
                 return
-            if h and time.time() - h["issued"] > st.expires_in:
-                self._error(403, "handle-expired", "Freshness Handle expired", corr)
-                st.record({"resource": u.path, "corr": corr, "outcome": 403, "reason": "handle-expired"})
-                return
-            if h and h["mode"] != mode:
-                self._error(400, "mode-mismatch", "handle was issued for mode %s" % h["mode"], corr)
+            if h and time.time() - h["issued"] > orig.expires_in:
+                # A nonce that is no longer valid: the Attester retries attest-initiate (TACRA 5.4).
+                self._error(409, "handle-expired", "Freshness Handle expired; retry attest-initiate", corr)
+                st.record({"resource": u.path, "corr": corr, "outcome": 409, "reason": "handle-expired"})
                 return
             if h and (h["target"] != target or h["credential_type"] != ctype):
                 self._error(403, "initiation-mismatch", "target and credential_type must match attest-initiate", corr)
