@@ -1,7 +1,6 @@
 ### proverif version
-Proverif 2.05. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre
 ### date
-2026-09-26T18:29:01Z
+2026-09-26T20:21:22Z
 ### enrollment-nobind.pv
 Process 0 (that is, the initial process):
 {1}out(c, pk(tk));
@@ -459,9 +458,6 @@ Query inj-event(Issued(sid_1,t,x)) ==> inj-event(AttesterIntends(sid_1,t,x)) is 
 
 --------------------------------------------------------------
 
-real 0.01
-user 0.00
-sys 0.00
 ### enrollment-serveronly.pv
 File "enrollment-serveronly.pv", line 47, characters 24-26:
 Warning: identifier sid rebound.
@@ -846,9 +842,6 @@ Query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterIntends(sid_2,t,x)) is 
 
 --------------------------------------------------------------
 
-real 0.01
-user 0.00
-sys 0.00
 ### enrollment-bind.pv
 File "enrollment-bind.pv", line 47, characters 24-26:
 Warning: identifier sid rebound.
@@ -1002,9 +995,6 @@ Query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterIntends(sid_2,t,x)) is 
 
 --------------------------------------------------------------
 
-real 0.01
-user 0.00
-sys 0.00
 ### enrollment-bind-compromised-s2.pv
 File "enrollment-bind-compromised-s2.pv", line 45, characters 24-26:
 Warning: identifier sid rebound.
@@ -1094,9 +1084,6 @@ Query event(Issued(id1,t,x)) ==> event(AttesterIntends(id1,t,x)) is true.
 
 --------------------------------------------------------------
 
-real 0.00
-user 0.00
-sys 0.00
 ### enrollment-bind-tee-key-leaked.pv
 File "enrollment-bind-tee-key-leaked.pv", line 47, characters 24-26:
 Warning: identifier sid rebound.
@@ -1565,9 +1552,6 @@ Query inj-event(Issued(sid_2,t,x)) ==> inj-event(AttesterIntends(sid_2,t,x)) is 
 
 --------------------------------------------------------------
 
-real 0.01
-user 0.00
-sys 0.00
 ### retrieval-base.pv
 File "retrieval-base.pv", line 45, characters 24-26:
 Warning: identifier sid rebound.
@@ -1774,9 +1758,6 @@ Query not attacker(sec1[]) is true.
 
 --------------------------------------------------------------
 
-real 0.00
-user 0.00
-sys 0.00
 ### retrieval-auth.pv
 File "retrieval-auth.pv", line 45, characters 24-26:
 Warning: identifier sid rebound.
@@ -1905,9 +1886,6 @@ Query not attacker(sec1[]) is true.
 
 --------------------------------------------------------------
 
-real 0.00
-user 0.00
-sys 0.00
 ### retrieval-auth-compromised-vault2.pv
 File "retrieval-auth-compromised-vault2.pv", line 45, characters 24-26:
 Warning: identifier sid rebound.
@@ -2006,6 +1984,3 @@ Query not attacker(sec1[]) is true.
 
 --------------------------------------------------------------
 
-real 0.00
-user 0.00
-sys 0.00

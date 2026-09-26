@@ -21,7 +21,7 @@ All three hardware hosts ran the same machine type, CPU (family 19h model 01h st
 firmware 1.58 build 1, TCB (boot loader 4, TEE 0, SNP 29, microcode 222) and guest kernel
 (Ubuntu `7.0.0-1011-gcp`), per `D1-report.bin`, `kernel.txt` and `machine-type.txt` of each run.
 
-## 1. Formal model (ProVerif 2.05), `formal/results/proverif-20260926.txt`
+## 1. Formal model (ProVerif 2.05), `formal/results/proverif-20260926T202122Z.txt`
 
 | model | binding | Q1 | Q2 | Q3 | R1 | S |
 |---|---|---|---|---|---|---|
