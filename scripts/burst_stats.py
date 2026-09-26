@@ -9,7 +9,13 @@ row with REPORT_DATA of zeroes. A call counts as stalled above 1 s. For a stalle
 is compared with the Linux guest driver's retry sleep: on a host "busy" answer the driver sleeps
 SNP_REQ_RETRY_DELAY = 2 s and retries, and gives up after SNP_REQ_MAX_RETRY_DURATION = 60 s
 (Linux 7.0, arch/x86/include/asm/sev.h lines 159-160; arch/x86/coco/sev/core.c lines 1831-1841).
+
+One exception. The first hardware run, 20260926T165938Z (evidence/20260926T165724Z-gcp-sev-snp),
+ran the code of commit 8836e0f, whose Attester downloaded AMD's certificate chain from the KDS for
+every report and whose burst timed the whole call; its per-report times are the implementation's
+of that day, not the chip's. The bare ioctl is timed from commit 78dc60f on.
 """
+WHOLE_CALL_RUNS = {"20260926T165938Z"}
 import json
 import math
 import statistics
@@ -31,6 +37,7 @@ def stats(path):
     total_s = sum(t) / 1000.0
     return {
         "run": d["stamp"], "host": d.get("host", "").split(".")[0], "n": len(t),
+        "timed": "whole call, with KDS download" if d["stamp"] in WHOLE_CALL_RUNS else "ioctl alone",
         "unstalled_n": len(fast), "unstalled_median_ms": round(statistics.median(fast), 2),
         "unstalled_p95_ms": round(sorted(fast)[math.ceil(0.95 * len(fast)) - 1], 2),
         "unstalled_max_ms": round(max(fast), 2),

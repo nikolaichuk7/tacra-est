@@ -1,0 +1,2 @@
+{"credential_type": "x509", "handle": "L3fc7dQGFgATCS1sB0L-1hvONiRZX3Bakwng8f97EzQ", "mode": "enroll", "resource": "attest-initiate", "t": 1790447547.9262948, "target": "https://db.tacra.example"}
+{"chip_id": "1d1f823a4c3294e2", "corr": "0b2ff184e1d3", "expected": "66a6d84eca237e121f04f437d7ca9245", "got": "c195d8dec06fe47f972a86abaea2584a", "ms_verifier": 28.262430000002496, "outcome": 403, "platform_form": "direct", "reason": "binding-mismatch", "resource": "/.well-known/est/attest-enroll", "t": 1790447547.9669552}

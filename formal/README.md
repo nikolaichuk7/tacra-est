@@ -49,13 +49,19 @@ Vault released.
   when `c` was produced under `skS` (RFC 9180 Section 5.1.3: at most two parties can produce the
   shared secret).
 
-## The two attacks ProVerif finds
+## The attacks ProVerif finds
 
 Enrollment, -00 binding. The conduit obtains a Handle from S2 and gives it to the Attester, which
 cannot tell whose it is; the Attester binds that Handle and its CSR into Evidence for its intended
 S1; the conduit posts CSR and Evidence to S2; S2's checks all pass and S2 issues a certificate for a
 CSR the Attester never intended for S2. In the trace: `Issued(id2, csr)` without
 `AttesterIntends(id2, csr)`.
+
+Enrollment, `server_id` bound without the Target. The conduit initiates at S1 for a Target of its
+own choosing and hands the Handle to the Attester, which binds that Handle, `id1` and its CSR as it
+would for its own Target; S1's checks all pass and S1 issues under the conduit's Target. In the
+output: from `AttesterIntends(id1, tA, csr)` and any Target `t` the attacker knows,
+`Issued(id1, t, csr)`.
 
 Retrieval, base mode. `pk(cek)` travels in the Evidence, so the attacker has it; it encrypts a
 secret of its own to `pk(cek)`; the Attester decrypts and uses it. In the trace: `AttesterUses(id1,
@@ -76,4 +82,5 @@ private key can produce a ciphertext the Attester will open.
     for f in *.pv; do proverif $f; done
 
 ProVerif 2.05 builds from the official source with OCaml; the results in `results/` were produced
-on macOS with OCaml 5 and are byte-for-byte what the tool printed.
+on macOS with OCaml 5 and are what the tool printed, unedited, with `###` header lines added for
+the version, the date and each model.
