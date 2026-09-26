@@ -1,0 +1,2457 @@
+### proverif version
+Proverif 2.05. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre
+### date
+2026-09-26T23:37:33Z
+### enrollment-epoch-received-norrp.pv
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, e: bitstring);
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((e,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}in(c, tgt_1: bitstring);
+    {18}out(c, ep);
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,tgt_1,csr_1))) then
+    {27}event Issued(id,tgt_1,csr_1);
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {30}let id_1: bitstring = id2 in
+    {31}let ca_1: skey = ca2 in
+    {32}in(c, tgt_2: bitstring);
+    {33}out(c, ep);
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,tgt_2,csr_2))) then
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-epoch-received-norrp.pv", line 41, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, e: bitstring);
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((e,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {17}in(c, tgt_1: bitstring);
+    {18}out(c, ep);
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,tgt_1,csr_1))) then
+    {15}let id: bitstring = id1 in
+    {27}event Issued(id,tgt_1,csr_1);
+    {16}let ca: skey = ca1 in
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {32}in(c, tgt_2: bitstring);
+    {33}out(c, ep);
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,tgt_2,csr_2))) then
+    {30}let id_1: bitstring = id2 in
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {31}let ca_1: skey = ca2 in
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_1,ep)) && b-event(@p_act(@occ34_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ32_1,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ34_1 = @occ34[!1 = @sid_1]
+@occ32_1 = @occ32[!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ34_1 = @occ34[!1 = @sid_1]
+@occ32_1 = @occ32[!1 = @sid_1]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function ep the attacker may obtain ep.
+attacker(ep).
+
+3. The event @p_act(@occ10_1,ep) records how variables are instantiated at {10}.
+The message ep that the attacker may have by 2 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+6. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+7. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+8. By 7, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+9. By 8, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+By 6, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+11. By 1, the attacker may know tA.
+By 10, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. The event @p_act(@occ32_1,tA) records how variables are instantiated at {32}.
+The message tA that the attacker may have by 1 may be received at input {32}.
+The event @p_act(@occ34_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {34}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 11 may be received at input {34}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {42}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+13. By 12, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, ep) at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+out(c, (~M_4,(pk2b(~M_5),~M_6),~M_7)) with ~M_4 = tA, ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {13} in copy a
+
+in(c, tA) at {32} in copy a_1
+
+out(c, ~M_8) with ~M_8 = ep at {33} in copy a_1
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {34} in copy a_1
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {42} in copy a_1 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {42} in copy a_1.
+A trace has been found.
+RESULT event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: b-event(@p_act(@occ19_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ17_2,tA)) && b-event(@p_act(@occ10_2,ep)) && b-event(@p_act(@occ34_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ32_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ19_2 = @occ19_1[!1 = @sid_1]
+@occ17_2 = @occ17_1[!1 = @sid_1]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ34_2 = @occ34_1[!1 = @sid_2]
+@occ32_2 = @occ32_1[!1 = @sid_2]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ19_2 = @occ19_1[!1 = @sid_1]
+@occ17_2 = @occ17_1[!1 = @sid_1]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ34_2 = @occ34_1[!1 = @sid_2]
+@occ32_2 = @occ32_1[!1 = @sid_2]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function ep the attacker may obtain ep.
+attacker(ep).
+
+3. The event @p_act(@occ10_2,ep) records how variables are instantiated at {10}.
+The message ep that the attacker may have by 2 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. By 3, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+6. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+7. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+8. By 7, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+9. By 8, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+By 6, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+11. By 1, the attacker may know tA.
+By 10, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+12. The event @p_act(@occ32_2,tA) records how variables are instantiated at {32}.
+The message tA that the attacker may have by 1 may be received at input {32}.
+The event @p_act(@occ34_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {34}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 11 may be received at input {34}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {42}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+13. The event @p_act(@occ17_2,tA) records how variables are instantiated at {17}.
+The message tA that the attacker may have by 1 may be received at input {17}.
+The event @p_act(@occ19_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {19}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 11 may be received at input {19}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {27}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. By 13, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 12, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, ep) at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+out(c, (~M_4,(pk2b(~M_5),~M_6),~M_7)) with ~M_4 = tA, ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {13} in copy a
+
+in(c, tA) at {17} in copy a_1
+
+out(c, ~M_8) with ~M_8 = ep at {18} in copy a_1
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {19} in copy a_1
+
+event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {27} in copy a_1 (goal)
+
+out(c, ~M_9) with ~M_9 = sign((id1,tA,pk2b(pk(csk_2))),ca1) at {28} in copy a_1
+
+in(c, tA) at {32} in copy a_2
+
+out(c, ~M_10) with ~M_10 = ep at {33} in copy a_2
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {34} in copy a_2
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {42} in copy a_2 (goal)
+
+The event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {27} in copy a_1.
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {42} in copy a_2.
+A trace has been found.
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+
+### enrollment-epoch-received-rrp-from-initiate.pv
+File "enrollment-epoch-received-rrp-from-initiate.pv", line 50, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, (e: bitstring,sid_1: bitstring));
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((e,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {16}let id: bitstring = id1 in
+    {17}let ca: skey = ca1 in
+    {18}in(c, tgt_1: bitstring);
+    {19}out(c, (ep,id));
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {30}!
+    {31}let id_1: bitstring = id2 in
+    {32}let ca_1: skey = ca2 in
+    {33}in(c, tgt_2: bitstring);
+    {34}out(c, (ep,id_1));
+    {35}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {36}if (tgt2_1 = tgt_2) then
+    {37}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {40}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {41}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {42}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {43}event Issued(id_1,tgt_2,csr_2);
+    {44}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-epoch-received-rrp-from-initiate.pv", line 42, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-epoch-received-rrp-from-initiate.pv", line 43, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, (e: bitstring,sid_1: bitstring));
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((e,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {18}in(c, tgt_1: bitstring);
+    {16}let id: bitstring = id1 in
+    {19}out(c, (ep,id));
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {17}let ca: skey = ca1 in
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {30}!
+    {33}in(c, tgt_2: bitstring);
+    {31}let id_1: bitstring = id2 in
+    {34}out(c, (ep,id_1));
+    {35}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {36}if (tgt2_1 = tgt_2) then
+    {37}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {38}if (m_1 = meas) then
+    {39}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {40}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {41}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {42}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {43}event Issued(id_1,tgt_2,csr_2);
+    {32}let ca_1: skey = ca2 in
+    {44}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_1,(ep,id2))) && b-event(@p_act(@occ35_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ33_1,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ35_1 = @occ35[!1 = @sid_1]
+@occ33_1 = @occ33[!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ35_1 = @occ35[!1 = @sid_1]
+@occ33_1 = @occ33[!1 = @sid_1]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. Using the function ep the attacker may obtain ep.
+attacker(ep).
+
+4. By 3, the attacker may know ep.
+By 2, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (ep,id2).
+attacker((ep,id2)).
+
+5. The event @p_act(@occ10_1,(ep,id2)) records how variables are instantiated at {10}.
+The message (ep,id2) that the attacker may have by 4 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+6. By 5, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+7. By 5, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+8. By 7, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+9. By 7, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+11. By 10, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+12. By 11, the attacker may know pk2b(pk(csk_1)).
+By 8, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+13. By 1, the attacker may know tA.
+By 12, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 6, the attacker may know sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+14. The event @p_act(@occ33_1,tA) records how variables are instantiated at {33}.
+The message tA that the attacker may have by 1 may be received at input {33}.
+The event @p_act(@occ35_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {35}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 13 may be received at input {35}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {43}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+15. By 14, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, (ep,id2)) at {10} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a
+
+event AttesterBinds(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {12} in copy a
+
+out(c, (~M_4,(pk2b(~M_5),~M_6),~M_7)) with ~M_4 = tA, ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {14} in copy a
+
+in(c, tA) at {33} in copy a_1
+
+out(c, (~M_8,~M_9)) with ~M_8 = ep, ~M_9 = id2 at {34} in copy a_1
+
+in(c, (tA,(pk2b(~M_5),~M_6),~M_7)) with ~M_5 = pk(csk_2), ~M_6 = sign(pk2b(pk(csk_2)),csk_2), ~M_7 = sign((meas,h((ep,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {35} in copy a_1
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {43} in copy a_1 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {43} in copy a_1.
+A trace has been found.
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x))
+goal reachable: b-event(AttesterBinds(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_2,(ep,id1))) && b-event(@p_act(@occ20_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ18_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ20_2 = @occ20_1[!1 = @sid_1]
+@occ18_2 = @occ18_1[!1 = @sid_1]
+goal reachable: b-event(AttesterBinds(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_2,(ep,id2))) && b-event(@p_act(@occ35_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ33_2,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ35_2 = @occ35_1[!1 = @sid_1]
+@occ33_2 = @occ33_1[!1 = @sid_1]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: b-event(@p_act(@occ10_3,(ep,id1))) && b-event(@p_act(@occ20_3,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ18_3,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_3 = @occ10_2[!1 = @sid]
+@occ20_3 = @occ20_2[!1 = @sid_1]
+@occ18_3 = @occ18_2[!1 = @sid_1]
+goal reachable: b-event(@p_act(@occ10_3,(ep,id2))) && b-event(@p_act(@occ35_3,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ33_3,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_3 = @occ10_2[!1 = @sid]
+@occ35_3 = @occ35_2[!1 = @sid_1]
+@occ33_3 = @occ33_2[!1 = @sid_1]
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+
+### enrollment-epoch-received-rrp-configured.pv
+File "enrollment-epoch-received-rrp-configured.pv", line 48, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, (e: bitstring,sid_1: bitstring));
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((e,srv,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}in(c, tgt_1: bitstring);
+    {18}out(c, (ep,id));
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {27}event Issued(id,tgt_1,csr_1);
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {30}let id_1: bitstring = id2 in
+    {31}let ca_1: skey = ca2 in
+    {32}in(c, tgt_2: bitstring);
+    {33}out(c, (ep,id_1));
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-epoch-received-rrp-configured.pv", line 41, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, (e: bitstring,sid_1: bitstring));
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((e,srv,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {17}in(c, tgt_1: bitstring);
+    {15}let id: bitstring = id1 in
+    {18}out(c, (ep,id));
+    {19}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {20}if (tgt2 = tgt_1) then
+    {21}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {22}if (m = meas) then
+    {23}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {24}let pk2b(pkc: pkey) = pkcb in
+    {25}if (checksig(pop,pkc) = pkcb) then
+    {26}if (rd = h((ep,id,tgt_1,csr_1))) then
+    {27}event Issued(id,tgt_1,csr_1);
+    {16}let ca: skey = ca1 in
+    {28}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {29}!
+    {32}in(c, tgt_2: bitstring);
+    {30}let id_1: bitstring = id2 in
+    {33}out(c, (ep,id_1));
+    {34}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {35}if (tgt2_1 = tgt_2) then
+    {36}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {37}if (m_1 = meas) then
+    {38}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {39}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {40}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {41}if (rd_1 = h((ep,id_1,tgt_2,csr_2))) then
+    {42}event Issued(id_1,tgt_2,csr_2);
+    {31}let ca_1: skey = ca2 in
+    {43}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(sid_2) && b-event(@p_act(@occ10_1,(ep,sid_2))) && b-event(@p_act(@occ19_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ17_1,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ19_1 = @occ19[!1 = @sid_1]
+@occ17_1 = @occ17[!1 = @sid_1]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: attacker(sid_2) && b-event(@p_act(@occ10_2,(ep,sid_2))) && b-event(@p_act(@occ19_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ep,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ17_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ19_2 = @occ19_1[!1 = @sid_1]
+@occ17_2 = @occ17_1[!1 = @sid_1]
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+
+### enrollment-verifier-handles-norrp.pv
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, n: bitstring);
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((n,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}in(c, tgt_1: bitstring);
+    {18}in(c, n_1: bitstring);
+    {30}get vhandles(=n_1) in
+    {19}out(c, n_1);
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((n_1,tgt_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {32}let id_1: bitstring = id2 in
+    {33}let ca_1: skey = ca2 in
+    {34}in(c, tgt_2: bitstring);
+    {35}in(c, n_2: bitstring);
+    {47}get vhandles(=n_2) in
+    {36}out(c, n_2);
+    {37}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((n_2,tgt_2,csr_2))) then
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+) | (
+    {48}!
+    {49}new n_3: bitstring;
+    {50}insert vhandles(n_3);
+    {51}out(c, n_3)
+)
+
+File "enrollment-verifier-handles-norrp.pv", line 41, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, n: bitstring);
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((n,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {17}in(c, tgt_1: bitstring);
+    {18}in(c, n_1: bitstring);
+    {30}get vhandles(=n_1) in
+    {19}out(c, n_1);
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((n_1,tgt_1,csr_1))) then
+    {15}let id: bitstring = id1 in
+    {28}event Issued(id,tgt_1,csr_1);
+    {16}let ca: skey = ca1 in
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {34}in(c, tgt_2: bitstring);
+    {35}in(c, n_2: bitstring);
+    {47}get vhandles(=n_2) in
+    {36}out(c, n_2);
+    {37}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((n_2,tgt_2,csr_2))) then
+    {32}let id_1: bitstring = id2 in
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {33}let ca_1: skey = ca2 in
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+) | (
+    {48}!
+    {49}new n_3: bitstring;
+    {50}insert vhandles(n_3);
+    {51}out(c, n_3)
+)
+
+-- Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_1,n_4)) && b-event(@p_act(@occ37_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ47_1,vhandles(n_4))) && b-event(@p_act(@occ35_1,n_4)) && b-event(@p_act(@occ34_1,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ37_1 = @occ37[!1 = @sid_2]
+@occ47_1 = @occ47[!1 = @sid_2]
+@occ35_1 = @occ35[!1 = @sid_2]
+@occ34_1 = @occ34[!1 = @sid_2]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ10_1 = @occ10[!1 = @sid]
+@occ37_1 = @occ37[!1 = @sid_2]
+@occ47_1 = @occ47[!1 = @sid_2]
+@occ35_1 = @occ35[!1 = @sid_2]
+@occ34_1 = @occ34[!1 = @sid_2]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. The message n_4 may be sent to the attacker at output {51}.
+attacker(n_4).
+
+3. The entry vhandles(n_4) may be inserted in a table at insert {50}.
+table(vhandles(n_4)).
+
+4. The event @p_act(@occ10_1,n_4) records how variables are instantiated at {10}.
+The message n_4 that the attacker may have by 2 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+5. By 4, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+6. By 4, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+7. By 6, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+8. By 6, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+9. By 8, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+10. By 9, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+11. By 10, the attacker may know pk2b(pk(csk_1)).
+By 7, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+12. By 1, the attacker may know tA.
+By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 5, the attacker may know sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+13. The event @p_act(@occ34_1,tA) records how variables are instantiated at {34}.
+The message tA that the attacker may have by 1 may be received at input {34}.
+The event @p_act(@occ35_1,n_4) records how variables are instantiated at {35}.
+The message n_4 that the attacker may have by 2 may be received at input {35}.
+The event @p_act(@occ47_1,vhandles(n_4)) records how variables are instantiated at {47}.
+The entry vhandles(n_4) that may be in a table by 3 may be read at get {47}.
+The event @p_act(@occ37_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {37}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. By 13, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new n_3: bitstring creating n_5 at {49} in copy a
+
+insert vhandles(n_5) at {50} in copy a
+
+out(c, ~M_3) with ~M_3 = n_5 at {51} in copy a
+
+new csk: skey creating csk_2 at {7} in copy a_1
+
+out(c, ~M_4) with ~M_4 = tA at {9} in copy a_1
+
+in(c, ~M_3) with ~M_3 = n_5 at {10} in copy a_1
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a_1
+
+out(c, (~M_5,(pk2b(~M_6),~M_7),~M_8)) with ~M_5 = tA, ~M_6 = pk(csk_2), ~M_7 = sign(pk2b(pk(csk_2)),csk_2), ~M_8 = sign((meas,h((n_5,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {13} in copy a_1
+
+in(c, tA) at {34} in copy a_2
+
+in(c, ~M_3) with ~M_3 = n_5 at {35} in copy a_2
+
+get vhandles(n_5) at {47} in copy a_2
+
+out(c, ~M_9) with ~M_9 = n_5 at {36} in copy a_2
+
+in(c, (tA,(pk2b(~M_6),~M_7),~M_8)) with ~M_6 = pk(csk_2), ~M_7 = sign(pk2b(pk(csk_2)),csk_2), ~M_8 = sign((meas,h((n_5,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {37} in copy a_2
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {45} in copy a_2 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {45} in copy a_2.
+A trace has been found.
+RESULT event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: b-event(@p_act(@occ20_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ30_2,vhandles(n_4))) && b-event(@p_act(@occ18_2,n_4)) && b-event(@p_act(@occ17_2,tA)) && b-event(@p_act(@occ10_2,n_4)) && b-event(@p_act(@occ37_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ47_2,vhandles(n_4))) && b-event(@p_act(@occ35_2,n_4)) && b-event(@p_act(@occ34_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ20_2 = @occ20_1[!1 = @sid_1]
+n_4 = n_3[!1 = @sid_2]
+@occ30_2 = @occ30_1[!1 = @sid_1]
+@occ18_2 = @occ18_1[!1 = @sid_1]
+@occ17_2 = @occ17_1[!1 = @sid_1]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ37_2 = @occ37_1[!1 = @sid_3]
+@occ47_2 = @occ47_1[!1 = @sid_3]
+@occ35_2 = @occ35_1[!1 = @sid_3]
+@occ34_2 = @occ34_1[!1 = @sid_3]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ20_2 = @occ20_1[!1 = @sid_2]
+@occ30_2 = @occ30_1[!1 = @sid_2]
+@occ18_2 = @occ18_1[!1 = @sid_2]
+@occ17_2 = @occ17_1[!1 = @sid_2]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ37_2 = @occ37_1[!1 = @sid_3]
+@occ47_2 = @occ47_1[!1 = @sid_3]
+@occ35_2 = @occ35_1[!1 = @sid_3]
+@occ34_2 = @occ34_1[!1 = @sid_3]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. The message n_4 may be sent to the attacker at output {51}.
+attacker(n_4).
+
+3. The entry vhandles(n_4) may be inserted in a table at insert {50}.
+table(vhandles(n_4)).
+
+4. The event @p_act(@occ10_2,n_4) records how variables are instantiated at {10}.
+The message n_4 that the attacker may have by 2 may be received at input {10}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {13}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+5. By 4, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+6. By 4, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+7. By 6, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+8. By 6, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+9. By 8, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+10. By 9, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+11. By 10, the attacker may know pk2b(pk(csk_1)).
+By 7, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+12. By 1, the attacker may know tA.
+By 11, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 5, the attacker may know sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+13. The event @p_act(@occ34_2,tA) records how variables are instantiated at {34}.
+The message tA that the attacker may have by 1 may be received at input {34}.
+The event @p_act(@occ35_2,n_4) records how variables are instantiated at {35}.
+The message n_4 that the attacker may have by 2 may be received at input {35}.
+The event @p_act(@occ47_2,vhandles(n_4)) records how variables are instantiated at {47}.
+The entry vhandles(n_4) that may be in a table by 3 may be read at get {47}.
+The event @p_act(@occ37_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {37}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. The event @p_act(@occ17_2,tA) records how variables are instantiated at {17}.
+The message tA that the attacker may have by 1 may be received at input {17}.
+The event @p_act(@occ18_2,n_4) records how variables are instantiated at {18}.
+The message n_4 that the attacker may have by 2 may be received at input {18}.
+The event @p_act(@occ30_2,vhandles(n_4)) records how variables are instantiated at {30}.
+The entry vhandles(n_4) that may be in a table by 3 may be read at get {30}.
+The event @p_act(@occ20_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {20}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {20}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {28}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+15. By 14, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 13, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new n_3: bitstring creating n_5 at {49} in copy a
+
+insert vhandles(n_5) at {50} in copy a
+
+out(c, ~M_3) with ~M_3 = n_5 at {51} in copy a
+
+new csk: skey creating csk_2 at {7} in copy a_1
+
+out(c, ~M_4) with ~M_4 = tA at {9} in copy a_1
+
+in(c, ~M_3) with ~M_3 = n_5 at {10} in copy a_1
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a_1
+
+out(c, (~M_5,(pk2b(~M_6),~M_7),~M_8)) with ~M_5 = tA, ~M_6 = pk(csk_2), ~M_7 = sign(pk2b(pk(csk_2)),csk_2), ~M_8 = sign((meas,h((n_5,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {13} in copy a_1
+
+in(c, tA) at {17} in copy a_2
+
+in(c, ~M_3) with ~M_3 = n_5 at {18} in copy a_2
+
+get vhandles(n_5) at {30} in copy a_2
+
+out(c, ~M_9) with ~M_9 = n_5 at {19} in copy a_2
+
+in(c, (tA,(pk2b(~M_6),~M_7),~M_8)) with ~M_6 = pk(csk_2), ~M_7 = sign(pk2b(pk(csk_2)),csk_2), ~M_8 = sign((meas,h((n_5,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {20} in copy a_2
+
+event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {28} in copy a_2 (goal)
+
+out(c, ~M_10) with ~M_10 = sign((id1,tA,pk2b(pk(csk_2))),ca1) at {29} in copy a_2
+
+in(c, tA) at {34} in copy a_3
+
+in(c, ~M_3) with ~M_3 = n_5 at {35} in copy a_3
+
+get vhandles(n_5) at {47} in copy a_3
+
+out(c, ~M_11) with ~M_11 = n_5 at {36} in copy a_3
+
+in(c, (tA,(pk2b(~M_6),~M_7),~M_8)) with ~M_6 = pk(csk_2), ~M_7 = sign(pk2b(pk(csk_2)),csk_2), ~M_8 = sign((meas,h((n_5,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {37} in copy a_3
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {45} in copy a_3 (goal)
+
+The event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {28} in copy a_2.
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {45} in copy a_3.
+A trace has been found.
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+
+### enrollment-verifier-handles-rrp-from-initiate.pv
+File "enrollment-verifier-handles-rrp-from-initiate.pv", line 50, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, (n: bitstring,sid_1: bitstring));
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((n,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {16}let id: bitstring = id1 in
+    {17}let ca: skey = ca1 in
+    {18}in(c, tgt_1: bitstring);
+    {19}in(c, n_1: bitstring);
+    {31}get vhandles(=n_1) in
+    {20}out(c, (n_1,id));
+    {21}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((n_1,id,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {32}!
+    {33}let id_1: bitstring = id2 in
+    {34}let ca_1: skey = ca2 in
+    {35}in(c, tgt_2: bitstring);
+    {36}in(c, n_2: bitstring);
+    {48}get vhandles(=n_2) in
+    {37}out(c, (n_2,id_1));
+    {38}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {39}if (tgt2_1 = tgt_2) then
+    {40}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {41}if (m_1 = meas) then
+    {42}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {43}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {44}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {45}if (rd_1 = h((n_2,id_1,tgt_2,csr_2))) then
+    {46}event Issued(id_1,tgt_2,csr_2);
+    {47}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+) | (
+    {49}!
+    {50}new n_3: bitstring;
+    {51}insert vhandles(n_3);
+    {52}out(c, n_3)
+)
+
+File "enrollment-verifier-handles-rrp-from-initiate.pv", line 42, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-verifier-handles-rrp-from-initiate.pv", line 43, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, (n: bitstring,sid_1: bitstring));
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}event AttesterBinds(sid_1,tgt,csr);
+    {13}let ev: bitstring = sign((meas,h((n,sid_1,tgt,csr))),tk) in
+    {14}out(c, (tgt,csr,ev))
+) | (
+    {15}!
+    {18}in(c, tgt_1: bitstring);
+    {19}in(c, n_1: bitstring);
+    {31}get vhandles(=n_1) in
+    {16}let id: bitstring = id1 in
+    {20}out(c, (n_1,id));
+    {21}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((n_1,id,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {17}let ca: skey = ca1 in
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {32}!
+    {35}in(c, tgt_2: bitstring);
+    {36}in(c, n_2: bitstring);
+    {48}get vhandles(=n_2) in
+    {33}let id_1: bitstring = id2 in
+    {37}out(c, (n_2,id_1));
+    {38}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {39}if (tgt2_1 = tgt_2) then
+    {40}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {41}if (m_1 = meas) then
+    {42}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {43}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {44}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {45}if (rd_1 = h((n_2,id_1,tgt_2,csr_2))) then
+    {46}event Issued(id_1,tgt_2,csr_2);
+    {34}let ca_1: skey = ca2 in
+    {47}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+) | (
+    {49}!
+    {50}new n_3: bitstring;
+    {51}insert vhandles(n_3);
+    {52}out(c, n_3)
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_1,(n_4,id2))) && b-event(@p_act(@occ38_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ48_1,vhandles(n_4))) && b-event(@p_act(@occ36_1,n_4)) && b-event(@p_act(@occ35_1,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ38_1 = @occ38[!1 = @sid_2]
+@occ48_1 = @occ48[!1 = @sid_2]
+@occ36_1 = @occ36[!1 = @sid_2]
+@occ35_1 = @occ35[!1 = @sid_2]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ10_1 = @occ10[!1 = @sid]
+@occ38_1 = @occ38[!1 = @sid_2]
+@occ48_1 = @occ48[!1 = @sid_2]
+@occ36_1 = @occ36[!1 = @sid_2]
+@occ35_1 = @occ35[!1 = @sid_2]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. The message n_4 may be sent to the attacker at output {52}.
+attacker(n_4).
+
+3. The entry vhandles(n_4) may be inserted in a table at insert {51}.
+table(vhandles(n_4)).
+
+4. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+5. By 2, the attacker may know n_4.
+By 4, the attacker may know id2.
+Using the function 2-tuple the attacker may obtain (n_4,id2).
+attacker((n_4,id2)).
+
+6. The event @p_act(@occ10_1,(n_4,id2)) records how variables are instantiated at {10}.
+The message (n_4,id2) that the attacker may have by 5 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {11}.
+So the message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {14}.
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+7. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-3-tuple the attacker may obtain sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+8. By 6, the attacker may know (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 2-proj-3-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+9. By 8, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+10. By 8, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+11. By 10, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+12. By 11, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+13. By 12, the attacker may know pk2b(pk(csk_1)).
+By 9, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+14. By 1, the attacker may know tA.
+By 13, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 7, the attacker may know sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 3-tuple the attacker may obtain (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+15. The event @p_act(@occ35_1,tA) records how variables are instantiated at {35}.
+The message tA that the attacker may have by 1 may be received at input {35}.
+The event @p_act(@occ36_1,n_4) records how variables are instantiated at {36}.
+The message n_4 that the attacker may have by 2 may be received at input {36}.
+The event @p_act(@occ48_1,vhandles(n_4)) records how variables are instantiated at {48}.
+The entry vhandles(n_4) that may be in a table by 3 may be read at get {48}.
+The event @p_act(@occ38_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {38}.
+The message (tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 14 may be received at input {38}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {46}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+16. By 15, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new n_3: bitstring creating n_5 at {50} in copy a
+
+insert vhandles(n_5) at {51} in copy a
+
+out(c, ~M_3) with ~M_3 = n_5 at {52} in copy a
+
+new csk: skey creating csk_2 at {7} in copy a_1
+
+out(c, ~M_4) with ~M_4 = tA at {9} in copy a_1
+
+in(c, (~M_3,id2)) with ~M_3 = n_5 at {10} in copy a_1
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {11} in copy a_1
+
+event AttesterBinds(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {12} in copy a_1
+
+out(c, (~M_5,(pk2b(~M_6),~M_7),~M_8)) with ~M_5 = tA, ~M_6 = pk(csk_2), ~M_7 = sign(pk2b(pk(csk_2)),csk_2), ~M_8 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {14} in copy a_1
+
+in(c, tA) at {35} in copy a_2
+
+in(c, ~M_3) with ~M_3 = n_5 at {36} in copy a_2
+
+get vhandles(n_5) at {48} in copy a_2
+
+out(c, (~M_9,~M_10)) with ~M_9 = n_5, ~M_10 = id2 at {37} in copy a_2
+
+in(c, (tA,(pk2b(~M_6),~M_7),~M_8)) with ~M_6 = pk(csk_2), ~M_7 = sign(pk2b(pk(csk_2)),csk_2), ~M_8 = sign((meas,h((n_5,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {38} in copy a_2
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {46} in copy a_2 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {46} in copy a_2.
+A trace has been found.
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x))
+goal reachable: b-event(AttesterBinds(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_2,(n_4,id1))) && b-event(@p_act(@occ21_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ31_2,vhandles(n_4))) && b-event(@p_act(@occ19_2,n_4)) && b-event(@p_act(@occ18_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ21_2 = @occ21_1[!1 = @sid_2]
+@occ31_2 = @occ31_1[!1 = @sid_2]
+@occ19_2 = @occ19_1[!1 = @sid_2]
+@occ18_2 = @occ18_1[!1 = @sid_2]
+goal reachable: b-event(AttesterBinds(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_2,(n_4,id2))) && b-event(@p_act(@occ38_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ48_2,vhandles(n_4))) && b-event(@p_act(@occ36_2,n_4)) && b-event(@p_act(@occ35_2,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ38_2 = @occ38_1[!1 = @sid_2]
+@occ48_2 = @occ48_1[!1 = @sid_2]
+@occ36_2 = @occ36_1[!1 = @sid_2]
+@occ35_2 = @occ35_1[!1 = @sid_2]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: b-event(@p_act(@occ10_3,(n_4,id1))) && b-event(@p_act(@occ21_3,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ31_3,vhandles(n_4))) && b-event(@p_act(@occ19_3,n_4)) && b-event(@p_act(@occ18_3,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_3 = @occ10_2[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ21_3 = @occ21_2[!1 = @sid_2]
+@occ31_3 = @occ31_2[!1 = @sid_2]
+@occ19_3 = @occ19_2[!1 = @sid_2]
+@occ18_3 = @occ18_2[!1 = @sid_2]
+goal reachable: b-event(@p_act(@occ10_3,(n_4,id2))) && b-event(@p_act(@occ38_3,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ48_3,vhandles(n_4))) && b-event(@p_act(@occ36_3,n_4)) && b-event(@p_act(@occ35_3,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_3 = @occ10_2[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ38_3 = @occ38_2[!1 = @sid_2]
+@occ48_3 = @occ48_2[!1 = @sid_2]
+@occ36_3 = @occ36_2[!1 = @sid_2]
+@occ35_3 = @occ35_2[!1 = @sid_2]
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+
+### enrollment-verifier-handles-rrp-configured.pv
+File "enrollment-verifier-handles-rrp-configured.pv", line 48, characters 24-26:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, (n: bitstring,sid_1: bitstring));
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((n,srv,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {15}let id: bitstring = id1 in
+    {16}let ca: skey = ca1 in
+    {17}in(c, tgt_1: bitstring);
+    {18}in(c, n_1: bitstring);
+    {30}get vhandles(=n_1) in
+    {19}out(c, (n_1,id));
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((n_1,id,tgt_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {32}let id_1: bitstring = id2 in
+    {33}let ca_1: skey = ca2 in
+    {34}in(c, tgt_2: bitstring);
+    {35}in(c, n_2: bitstring);
+    {47}get vhandles(=n_2) in
+    {36}out(c, (n_2,id_1));
+    {37}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((n_2,id_1,tgt_2,csr_2))) then
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+) | (
+    {48}!
+    {49}new n_3: bitstring;
+    {50}insert vhandles(n_3);
+    {51}out(c, n_3)
+)
+
+File "enrollment-verifier-handles-rrp-configured.pv", line 41, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, (n: bitstring,sid_1: bitstring));
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {11}event AttesterIntends(srv,tgt,csr);
+    {12}let ev: bitstring = sign((meas,h((n,srv,tgt,csr))),tk) in
+    {13}out(c, (tgt,csr,ev))
+) | (
+    {14}!
+    {17}in(c, tgt_1: bitstring);
+    {18}in(c, n_1: bitstring);
+    {30}get vhandles(=n_1) in
+    {15}let id: bitstring = id1 in
+    {19}out(c, (n_1,id));
+    {20}in(c, (tgt2: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {21}if (tgt2 = tgt_1) then
+    {22}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {23}if (m = meas) then
+    {24}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {25}let pk2b(pkc: pkey) = pkcb in
+    {26}if (checksig(pop,pkc) = pkcb) then
+    {27}if (rd = h((n_1,id,tgt_1,csr_1))) then
+    {28}event Issued(id,tgt_1,csr_1);
+    {16}let ca: skey = ca1 in
+    {29}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {34}in(c, tgt_2: bitstring);
+    {35}in(c, n_2: bitstring);
+    {47}get vhandles(=n_2) in
+    {32}let id_1: bitstring = id2 in
+    {36}out(c, (n_2,id_1));
+    {37}in(c, (tgt2_1: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((n_2,id_1,tgt_2,csr_2))) then
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {33}let ca_1: skey = ca2 in
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+) | (
+    {48}!
+    {49}new n_3: bitstring;
+    {50}insert vhandles(n_3);
+    {51}out(c, n_3)
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(sid_2) && b-event(@p_act(@occ10_1,(n_4,sid_2))) && b-event(@p_act(@occ20_1,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ30_1,vhandles(n_4))) && b-event(@p_act(@occ18_1,n_4)) && b-event(@p_act(@occ17_1,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ20_1 = @occ20[!1 = @sid_2]
+@occ30_1 = @occ30[!1 = @sid_2]
+@occ18_1 = @occ18[!1 = @sid_2]
+@occ17_1 = @occ17[!1 = @sid_2]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: attacker(sid_2) && b-event(@p_act(@occ10_2,(n_4,sid_2))) && b-event(@p_act(@occ20_2,(tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((n_4,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ30_2,vhandles(n_4))) && b-event(@p_act(@occ18_2,n_4)) && b-event(@p_act(@occ17_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+n_4 = n_3[!1 = @sid_1]
+@occ20_2 = @occ20_1[!1 = @sid_2]
+@occ30_2 = @occ30_1[!1 = @sid_2]
+@occ18_2 = @occ18_1[!1 = @sid_2]
+@occ17_2 = @occ17_1[!1 = @sid_2]
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+
+### enrollment-timestamp-norrp.pv
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, ignored_v: bitstring);
+    {11}new ts: bitstring;
+    {12}out(c, ts);
+    {13}event AttesterIntends(srv,tgt,csr);
+    {14}let ev: bitstring = sign((meas,h((ts,tgt,csr))),tk) in
+    {15}out(c, (tgt,ts,csr,ev))
+) | (
+    {16}!
+    {17}let id: bitstring = id1 in
+    {18}let ca: skey = ca1 in
+    {19}in(c, tgt_1: bitstring);
+    {20}out(c, id);
+    {21}in(c, (tgt2: bitstring,ts_1: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((ts_1,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {32}let id_1: bitstring = id2 in
+    {33}let ca_1: skey = ca2 in
+    {34}in(c, tgt_2: bitstring);
+    {35}out(c, id_1);
+    {36}in(c, (tgt2_1: bitstring,ts_2: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {37}if (tgt2_1 = tgt_2) then
+    {38}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {39}if (m_1 = meas) then
+    {40}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {41}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {42}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {43}if (rd_1 = h((ts_2,tgt_2,csr_2))) then
+    {44}event Issued(id_1,tgt_2,csr_2);
+    {45}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-timestamp-norrp.pv", line 40, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, ignored_v: bitstring);
+    {11}new ts: bitstring;
+    {12}out(c, ts);
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {13}event AttesterIntends(srv,tgt,csr);
+    {14}let ev: bitstring = sign((meas,h((ts,tgt,csr))),tk) in
+    {15}out(c, (tgt,ts,csr,ev))
+) | (
+    {16}!
+    {19}in(c, tgt_1: bitstring);
+    {17}let id: bitstring = id1 in
+    {20}out(c, id);
+    {21}in(c, (tgt2: bitstring,ts_1: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((ts_1,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {18}let ca: skey = ca1 in
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {34}in(c, tgt_2: bitstring);
+    {32}let id_1: bitstring = id2 in
+    {35}out(c, id_1);
+    {36}in(c, (tgt2_1: bitstring,ts_2: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {37}if (tgt2_1 = tgt_2) then
+    {38}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {39}if (m_1 = meas) then
+    {40}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {41}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {42}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {43}if (rd_1 = h((ts_2,tgt_2,csr_2))) then
+    {44}event Issued(id_1,tgt_2,csr_2);
+    {33}let ca_1: skey = ca2 in
+    {45}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(ignored_v_1) && b-event(@p_act(@occ10_1,ignored_v_1)) && b-event(@p_act(@occ36_1,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ34_1,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ36_1 = @occ36[!1 = @sid_1]
+ts_3 = ts[ignored_v = ignored_v_1,!1 = @sid]
+@occ34_1 = @occ34[!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+ts_3 = ts[ignored_v = ignored_v_1,!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ36_1 = @occ36[!1 = @sid_1]
+@occ34_1 = @occ34[!1 = @sid_1]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. We assume as hypothesis that
+attacker(ignored_v_1).
+
+3. The event @p_act(@occ10_1,ignored_v_1) records how variables are instantiated at {10}.
+The message ignored_v_1 that the attacker may have by 2 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {13}.
+So the message (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {15}.
+attacker((tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 4-proj-4-tuple the attacker may obtain sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. By 3, the attacker may know (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-4-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+6. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+7. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+8. By 7, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+9. By 8, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+By 6, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+11. The event @p_act(@occ10_1,ignored_v_1) records how variables are instantiated at {10}.
+The message ignored_v_1 that the attacker may have by 2 may be received at input {10}.
+So the message ts_3 may be sent to the attacker at output {12}.
+attacker(ts_3).
+
+12. By 1, the attacker may know tA.
+By 11, the attacker may know ts_3.
+By 10, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 4-tuple the attacker may obtain (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+13. The event @p_act(@occ34_1,tA) records how variables are instantiated at {34}.
+The message tA that the attacker may have by 1 may be received at input {34}.
+The event @p_act(@occ36_1,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {36}.
+The message (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {36}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {44}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. By 13, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, a_1) at {10} in copy a
+
+new ts: bitstring creating ts_4 at {11} in copy a
+
+out(c, ~M_4) with ~M_4 = ts_4 at {12} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {13} in copy a
+
+out(c, (~M_5,~M_6,(pk2b(~M_7),~M_8),~M_9)) with ~M_5 = tA, ~M_6 = ts_4, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((ts_4,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {15} in copy a
+
+in(c, tA) at {34} in copy a_2
+
+out(c, ~M_10) with ~M_10 = id2 at {35} in copy a_2
+
+in(c, (tA,~M_4,(pk2b(~M_7),~M_8),~M_9)) with ~M_4 = ts_4, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((ts_4,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {36} in copy a_2
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {44} in copy a_2 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {44} in copy a_2.
+A trace has been found.
+RESULT event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: b-event(@p_act(@occ21_2,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ19_2,tA)) && attacker(ignored_v_1) && b-event(@p_act(@occ10_2,ignored_v_1)) && b-event(@p_act(@occ36_2,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ34_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ21_2 = @occ21_1[!1 = @sid_1]
+ts_3 = ts[ignored_v = ignored_v_1,!1 = @sid]
+@occ19_2 = @occ19_1[!1 = @sid_1]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ36_2 = @occ36_1[!1 = @sid_2]
+@occ34_2 = @occ34_1[!1 = @sid_2]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+ts_3 = ts[ignored_v = ignored_v_1,!1 = @sid]
+@occ21_2 = @occ21_1[!1 = @sid_1]
+@occ19_2 = @occ19_1[!1 = @sid_1]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ36_2 = @occ36_1[!1 = @sid_2]
+@occ34_2 = @occ34_1[!1 = @sid_2]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. We assume as hypothesis that
+attacker(ignored_v_1).
+
+3. The event @p_act(@occ10_2,ignored_v_1) records how variables are instantiated at {10}.
+The message ignored_v_1 that the attacker may have by 2 may be received at input {10}.
+So the message (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {15}.
+attacker((tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 4-proj-4-tuple the attacker may obtain sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. By 3, the attacker may know (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-4-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+6. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+7. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+8. By 7, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+9. By 8, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+By 6, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+11. The event @p_act(@occ10_2,ignored_v_1) records how variables are instantiated at {10}.
+The message ignored_v_1 that the attacker may have by 2 may be received at input {10}.
+So the message ts_3 may be sent to the attacker at output {12}.
+attacker(ts_3).
+
+12. By 1, the attacker may know tA.
+By 11, the attacker may know ts_3.
+By 10, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 4-tuple the attacker may obtain (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+13. The event @p_act(@occ34_2,tA) records how variables are instantiated at {34}.
+The message tA that the attacker may have by 1 may be received at input {34}.
+The event @p_act(@occ36_2,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {36}.
+The message (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {36}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {44}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. The event @p_act(@occ19_2,tA) records how variables are instantiated at {19}.
+The message tA that the attacker may have by 1 may be received at input {19}.
+The event @p_act(@occ21_2,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {21}.
+The message (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {21}.
+So event Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {29}.
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+15. By 14, event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+By 13, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goals are reached, combined in the following fact:
+event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, a_1) at {10} in copy a
+
+new ts: bitstring creating ts_4 at {11} in copy a
+
+out(c, ~M_4) with ~M_4 = ts_4 at {12} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {13} in copy a
+
+out(c, (~M_5,~M_6,(pk2b(~M_7),~M_8),~M_9)) with ~M_5 = tA, ~M_6 = ts_4, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((ts_4,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {15} in copy a
+
+in(c, tA) at {19} in copy a_2
+
+out(c, ~M_10) with ~M_10 = id1 at {20} in copy a_2
+
+in(c, (tA,~M_4,(pk2b(~M_7),~M_8),~M_9)) with ~M_4 = ts_4, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((ts_4,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {21} in copy a_2
+
+event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {29} in copy a_2 (goal)
+
+out(c, ~M_11) with ~M_11 = sign((id1,tA,pk2b(pk(csk_2))),ca1) at {30} in copy a_2
+
+in(c, tA) at {34} in copy a_3
+
+out(c, ~M_12) with ~M_12 = id2 at {35} in copy a_3
+
+in(c, (tA,~M_4,(pk2b(~M_7),~M_8),~M_9)) with ~M_4 = ts_4, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((ts_4,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {36} in copy a_3
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {44} in copy a_3 (goal)
+
+The event Issued(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {29} in copy a_2.
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {44} in copy a_3.
+A trace has been found.
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is false.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is false.
+
+--------------------------------------------------------------
+
+### enrollment-timestamp-rrp-from-initiate.pv
+File "enrollment-timestamp-rrp-from-initiate.pv", line 49, characters 9-11:
+Warning: identifier sid rebound.
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, sid_1: bitstring);
+    {11}new ts: bitstring;
+    {12}out(c, ts);
+    {13}event AttesterIntends(srv,tgt,csr);
+    {14}event AttesterBinds(sid_1,tgt,csr);
+    {15}let ev: bitstring = sign((meas,h((ts,sid_1,tgt,csr))),tk) in
+    {16}out(c, (tgt,ts,csr,ev))
+) | (
+    {17}!
+    {18}let id: bitstring = id1 in
+    {19}let ca: skey = ca1 in
+    {20}in(c, tgt_1: bitstring);
+    {21}out(c, id);
+    {22}in(c, (tgt2: bitstring,ts_1: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {23}if (tgt2 = tgt_1) then
+    {24}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {25}if (m = meas) then
+    {26}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {27}let pk2b(pkc: pkey) = pkcb in
+    {28}if (checksig(pop,pkc) = pkcb) then
+    {29}if (rd = h((ts_1,id,tgt_1,csr_1))) then
+    {30}event Issued(id,tgt_1,csr_1);
+    {31}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {32}!
+    {33}let id_1: bitstring = id2 in
+    {34}let ca_1: skey = ca2 in
+    {35}in(c, tgt_2: bitstring);
+    {36}out(c, id_1);
+    {37}in(c, (tgt2_1: bitstring,ts_2: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((ts_2,id_1,tgt_2,csr_2))) then
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-timestamp-rrp-from-initiate.pv", line 41, characters 7-9:
+Warning: identifier sid rebound.
+File "enrollment-timestamp-rrp-from-initiate.pv", line 42, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, sid_1: bitstring);
+    {11}new ts: bitstring;
+    {12}out(c, ts);
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {13}event AttesterIntends(srv,tgt,csr);
+    {14}event AttesterBinds(sid_1,tgt,csr);
+    {15}let ev: bitstring = sign((meas,h((ts,sid_1,tgt,csr))),tk) in
+    {16}out(c, (tgt,ts,csr,ev))
+) | (
+    {17}!
+    {20}in(c, tgt_1: bitstring);
+    {18}let id: bitstring = id1 in
+    {21}out(c, id);
+    {22}in(c, (tgt2: bitstring,ts_1: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {23}if (tgt2 = tgt_1) then
+    {24}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {25}if (m = meas) then
+    {26}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {27}let pk2b(pkc: pkey) = pkcb in
+    {28}if (checksig(pop,pkc) = pkcb) then
+    {29}if (rd = h((ts_1,id,tgt_1,csr_1))) then
+    {30}event Issued(id,tgt_1,csr_1);
+    {19}let ca: skey = ca1 in
+    {31}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {32}!
+    {35}in(c, tgt_2: bitstring);
+    {33}let id_1: bitstring = id2 in
+    {36}out(c, id_1);
+    {37}in(c, (tgt2_1: bitstring,ts_2: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {38}if (tgt2_1 = tgt_2) then
+    {39}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {40}if (m_1 = meas) then
+    {41}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {42}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {43}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {44}if (rd_1 = h((ts_2,id_1,tgt_2,csr_2))) then
+    {45}event Issued(id_1,tgt_2,csr_2);
+    {34}let ca_1: skey = ca2 in
+    {46}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_1,id2)) && b-event(@p_act(@occ37_1,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ35_1,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ37_1 = @occ37[!1 = @sid_1]
+ts_3 = ts[sid_1 = id2,!1 = @sid]
+@occ35_1 = @occ35[!1 = @sid_1]
+
+Derivation:
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+ts_3 = ts[sid_1 = id2,!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ37_1 = @occ37[!1 = @sid_1]
+@occ35_1 = @occ35[!1 = @sid_1]
+
+1. Using the function tA the attacker may obtain tA.
+attacker(tA).
+
+2. Using the function id2 the attacker may obtain id2.
+attacker(id2).
+
+3. The event @p_act(@occ10_1,id2) records how variables are instantiated at {10}.
+The message id2 that the attacker may have by 2 may be received at input {10}.
+The event AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {13}.
+So the message (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) may be sent to the attacker at output {16}.
+attacker((tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+4. By 3, the attacker may know (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 4-proj-4-tuple the attacker may obtain sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+attacker(sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+
+5. By 3, the attacker may know (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+Using the function 3-proj-4-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+6. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 2-proj-2-tuple the attacker may obtain sign(pk2b(pk(csk_1)),csk_1).
+attacker(sign(pk2b(pk(csk_1)),csk_1)).
+
+7. By 5, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+Using the function 1-proj-2-tuple the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+8. By 7, the attacker may know pk2b(pk(csk_1)).
+Using the function 1-proj-pk2b the attacker may obtain pk(csk_1).
+attacker(pk(csk_1)).
+
+9. By 8, the attacker may know pk(csk_1).
+Using the function pk2b the attacker may obtain pk2b(pk(csk_1)).
+attacker(pk2b(pk(csk_1))).
+
+10. By 9, the attacker may know pk2b(pk(csk_1)).
+By 6, the attacker may know sign(pk2b(pk(csk_1)),csk_1).
+Using the function 2-tuple the attacker may obtain (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+attacker((pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))).
+
+11. The event @p_act(@occ10_1,id2) records how variables are instantiated at {10}.
+The message id2 that the attacker may have by 2 may be received at input {10}.
+So the message ts_3 may be sent to the attacker at output {12}.
+attacker(ts_3).
+
+12. By 1, the attacker may know tA.
+By 11, the attacker may know ts_3.
+By 10, the attacker may know (pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)).
+By 4, the attacker may know sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]).
+Using the function 4-tuple the attacker may obtain (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])).
+attacker((tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))).
+
+13. The event @p_act(@occ35_1,tA) records how variables are instantiated at {35}.
+The message tA that the attacker may have by 1 may be received at input {35}.
+The event @p_act(@occ37_1,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[]))) records how variables are instantiated at {37}.
+The message (tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])) that the attacker may have by 12 may be received at input {37}.
+So event Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))) may be executed at {45}.
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+14. By 13, event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+The goal is reached, represented in the following fact:
+event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(c, ~M) with ~M = pk(tk) at {1}
+
+out(c, ~M_1) with ~M_1 = pk(ca1) at {2}
+
+out(c, ~M_2) with ~M_2 = pk(ca2) at {3}
+
+new csk: skey creating csk_2 at {7} in copy a
+
+out(c, ~M_3) with ~M_3 = tA at {9} in copy a
+
+in(c, id2) at {10} in copy a
+
+new ts: bitstring creating ts_4 at {11} in copy a
+
+out(c, ~M_4) with ~M_4 = ts_4 at {12} in copy a
+
+event AttesterIntends(id1,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {13} in copy a
+
+event AttesterBinds(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {14} in copy a
+
+out(c, (~M_5,~M_6,(pk2b(~M_7),~M_8),~M_9)) with ~M_5 = tA, ~M_6 = ts_4, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((ts_4,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {16} in copy a
+
+in(c, tA) at {35} in copy a_1
+
+out(c, ~M_10) with ~M_10 = id2 at {36} in copy a_1
+
+in(c, (tA,~M_4,(pk2b(~M_7),~M_8),~M_9)) with ~M_4 = ts_4, ~M_7 = pk(csk_2), ~M_8 = sign(pk2b(pk(csk_2)),csk_2), ~M_9 = sign((meas,h((ts_4,id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))))),tk) at {37} in copy a_1
+
+event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) at {45} in copy a_1 (goal)
+
+The event Issued(id2,tA,(pk2b(pk(csk_2)),sign(pk2b(pk(csk_2)),csk_2))) is executed at {45} in copy a_1.
+A trace has been found.
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+-- Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x))
+goal reachable: b-event(AttesterBinds(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_2,id1)) && b-event(@p_act(@occ22_2,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ20_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ22_2 = @occ22_1[!1 = @sid_1]
+ts_3 = ts[sid_1 = id1,!1 = @sid]
+@occ20_2 = @occ20_1[!1 = @sid_1]
+goal reachable: b-event(AttesterBinds(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && b-event(@p_act(@occ10_2,id2)) && b-event(@p_act(@occ37_2,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ35_2,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ37_2 = @occ37_1[!1 = @sid_1]
+ts_3 = ts[sid_1 = id2,!1 = @sid]
+@occ35_2 = @occ35_1[!1 = @sid_1]
+RESULT event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: b-event(@p_act(@occ10_3,id1)) && b-event(@p_act(@occ22_3,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ20_3,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_3 = @occ10_2[!1 = @sid]
+@occ22_3 = @occ22_2[!1 = @sid_1]
+ts_3 = ts[sid_1 = id1,!1 = @sid]
+@occ20_3 = @occ20_2[!1 = @sid_1]
+goal reachable: b-event(@p_act(@occ10_3,id2)) && b-event(@p_act(@occ37_3,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ35_3,tA)) -> event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id2,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_3 = @occ10_2[!1 = @sid]
+@occ37_3 = @occ37_2[!1 = @sid_1]
+ts_3 = ts[sid_1 = id2,!1 = @sid]
+@occ35_3 = @occ35_2[!1 = @sid_1]
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterIntends(sid_2,t2,x)) is false.
+
+Query event(Issued(sid_2,t,x)) ==> event(AttesterBinds(sid_2,t,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+
+### enrollment-timestamp-rrp-configured.pv
+Process 0 (that is, the initial process):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {5}let srv: bitstring = id1 in
+    {6}let tgt: bitstring = tA in
+    {7}new csk: skey;
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {9}out(c, tgt);
+    {10}in(c, ignored_v: bitstring);
+    {11}new ts: bitstring;
+    {12}out(c, ts);
+    {13}event AttesterIntends(srv,tgt,csr);
+    {14}let ev: bitstring = sign((meas,h((ts,srv,tgt,csr))),tk) in
+    {15}out(c, (tgt,ts,csr,ev))
+) | (
+    {16}!
+    {17}let id: bitstring = id1 in
+    {18}let ca: skey = ca1 in
+    {19}in(c, tgt_1: bitstring);
+    {20}out(c, id);
+    {21}in(c, (tgt2: bitstring,ts_1: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((ts_1,id,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {32}let id_1: bitstring = id2 in
+    {33}let ca_1: skey = ca2 in
+    {34}in(c, tgt_2: bitstring);
+    {35}out(c, id_1);
+    {36}in(c, (tgt2_1: bitstring,ts_2: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {37}if (tgt2_1 = tgt_2) then
+    {38}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {39}if (m_1 = meas) then
+    {40}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {41}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {42}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {43}if (rd_1 = h((ts_2,id_1,tgt_2,csr_2))) then
+    {44}event Issued(id_1,tgt_2,csr_2);
+    {45}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+File "enrollment-timestamp-rrp-configured.pv", line 40, characters 7-9:
+Warning: identifier sid rebound.
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}out(c, pk(tk));
+{2}out(c, pk(ca1));
+{3}out(c, pk(ca2));
+(
+    {4}!
+    {7}new csk: skey;
+    {6}let tgt: bitstring = tA in
+    {9}out(c, tgt);
+    {10}in(c, ignored_v: bitstring);
+    {11}new ts: bitstring;
+    {12}out(c, ts);
+    {8}let csr: bitstring = (pk2b(pk(csk)),sign(pk2b(pk(csk)),csk)) in
+    {5}let srv: bitstring = id1 in
+    {13}event AttesterIntends(srv,tgt,csr);
+    {14}let ev: bitstring = sign((meas,h((ts,srv,tgt,csr))),tk) in
+    {15}out(c, (tgt,ts,csr,ev))
+) | (
+    {16}!
+    {19}in(c, tgt_1: bitstring);
+    {17}let id: bitstring = id1 in
+    {20}out(c, id);
+    {21}in(c, (tgt2: bitstring,ts_1: bitstring,csr_1: bitstring,ev_1: bitstring));
+    {22}if (tgt2 = tgt_1) then
+    {23}let (m: bitstring,rd: bitstring) = checksig(ev_1,pk(tk)) in
+    {24}if (m = meas) then
+    {25}let (pkcb: bitstring,pop: bitstring) = csr_1 in
+    {26}let pk2b(pkc: pkey) = pkcb in
+    {27}if (checksig(pop,pkc) = pkcb) then
+    {28}if (rd = h((ts_1,id,tgt_1,csr_1))) then
+    {29}event Issued(id,tgt_1,csr_1);
+    {18}let ca: skey = ca1 in
+    {30}out(c, sign((id,tgt_1,pkcb),ca))
+) | (
+    {31}!
+    {34}in(c, tgt_2: bitstring);
+    {32}let id_1: bitstring = id2 in
+    {35}out(c, id_1);
+    {36}in(c, (tgt2_1: bitstring,ts_2: bitstring,csr_2: bitstring,ev_2: bitstring));
+    {37}if (tgt2_1 = tgt_2) then
+    {38}let (m_1: bitstring,rd_1: bitstring) = checksig(ev_2,pk(tk)) in
+    {39}if (m_1 = meas) then
+    {40}let (pkcb_1: bitstring,pop_1: bitstring) = csr_2 in
+    {41}let pk2b(pkc_1: pkey) = pkcb_1 in
+    {42}if (checksig(pop_1,pkc_1) = pkcb_1) then
+    {43}if (rd_1 = h((ts_2,id_1,tgt_2,csr_2))) then
+    {44}event Issued(id_1,tgt_2,csr_2);
+    {33}let ca_1: skey = ca2 in
+    {45}out(c, sign((id_1,tgt_2,pkcb_1),ca_1))
+)
+
+-- Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x))
+goal reachable: b-event(AttesterIntends(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && attacker(ignored_v_1) && b-event(@p_act(@occ10_1,ignored_v_1)) && b-event(@p_act(@occ21_1,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ19_1,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_1 = @occ10[!1 = @sid]
+@occ21_1 = @occ21[!1 = @sid_1]
+ts_3 = ts[ignored_v = ignored_v_1,!1 = @sid]
+@occ19_1 = @occ19[!1 = @sid_1]
+RESULT event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is true.
+-- Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2
+goal reachable: attacker(ignored_v_1) && b-event(@p_act(@occ10_2,ignored_v_1)) && b-event(@p_act(@occ21_2,(tA,ts_3,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)),sign((meas,h((ts_3,id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))),tk[])))) && b-event(@p_act(@occ19_2,tA)) -> event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1)))) && event(Issued(id1,tA,(pk2b(pk(csk_1)),sign(pk2b(pk(csk_1)),csk_1))))
+Abbreviations:
+csk_1 = csk[!1 = @sid]
+@occ10_2 = @occ10_1[!1 = @sid]
+@occ21_2 = @occ21_1[!1 = @sid_1]
+ts_3 = ts[ignored_v = ignored_v_1,!1 = @sid]
+@occ19_2 = @occ19_1[!1 = @sid_1]
+RESULT event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query event(Issued(sid_1,t,x)) ==> event(AttesterIntends(sid_1,t2,x)) is true.
+
+Query event(Issued(s1,t,x)) && event(Issued(s2,t,x)) ==> s1 = s2 is true.
+
+--------------------------------------------------------------
+

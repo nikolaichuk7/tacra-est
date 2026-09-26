@@ -18,6 +18,11 @@ Relying Party, here the issuing server): the Attester binds either the server_id
 initiation response, from the conduit, or the one in its own configuration; and the first leg
 returns either a fresh Handle per server session or a shared public epoch ep (absent-epoch with a
 remote initiate), which the server recomputes the binding with.
+The freshness-source variants cross the same three sources of the bound identity (none, received,
+configured) with three more sources of freshness: the epoch value the Attester receives in the
+initiation response (present-epoch style) in place of ep; Handles issued by a Verifier and accepted
+by both servers (one Handle originator shared across Relying Parties); and a timestamp of the
+Attester's own, sent in the request (absent-timestamp), abstracted as a fresh public value.
 Retrieval. The same first leg; the Vault releases its secret encrypted to CEKpub, in base mode or
 with sender authentication (HPKE mode_auth). Query:
   R1  AttesterUses(vid, t, s) ==> VaultReleased(vid, t, s)
@@ -74,14 +79,19 @@ B2 = "query sid: bitstring, t: bitstring, x: bitstring; inj-event(Issued(sid, t,
 U1 = "query s1: bitstring, s2: bitstring, t: bitstring, x: bitstring; event(Issued(s1, t, x)) && event(Issued(s2, t, x)) ==> s1 = s2.\n"
 RRP_SOURCE = ("rrp-from-initiate", "nonce-norrp-uniqueness", "nonce-rrp-configured-uniqueness",
               "epoch-norrp", "epoch-rrp-from-initiate", "epoch-rrp-configured")
+FRESHNESS = ("epoch-received", "verifier-handles", "timestamp")
+FRESHNESS_SOURCES = tuple(f"{g}-{r}" for g in FRESHNESS for r in ("norrp", "rrp-from-initiate", "rrp-configured"))
 
 def enrollment(variant: str) -> str:
     # variant: nobind (-00) | serveronly | bind | bind-nocompare | bind-compromised-s2 | bind-tee-key-leaked
     #   rrp source: rrp-from-initiate | nonce-norrp-uniqueness | nonce-rrp-configured-uniqueness
     #               | epoch-norrp | epoch-rrp-from-initiate | epoch-rrp-configured
+    #   freshness source: {epoch-received | verifier-handles | timestamp}-{norrp | rrp-from-initiate | rrp-configured}
     decls = ""                        # declarations only some rrp-source variants need
     a_binds = ""                      # event AttesterBinds, where the Attester binds a server_id it received
-    s_new = "new n: bitstring;\n  "   # the Handle; the epoch variants have none
+    s_new = "new n: bitstring;\n  "   # the Handle; the epoch and timestamp variants have none
+    a_ts = s_ts = ""                  # the timestamp field of the request, in the timestamp variants
+    v_def = v_par = ""                # the Verifier that issues Handles, in the verifier-handles variants
     if variant in ("nobind", "nonce-norrp-uniqueness"):
         a_in = "in(c, n: bitstring);"
         a_rd = "h((n, csr))"
@@ -105,6 +115,59 @@ def enrollment(variant: str) -> str:
         s_out = "out(c, (n, id));"
         s_rd = "h((n, id, tgt, csr))"
         title = "Enrollment with a fresh Handle per initiation; the Attester has no configured server identity and binds the server_id it receives in the initiation response, without comparison"
+    elif variant in FRESHNESS_SOURCES:
+        # Three more sources of freshness, each with the three sources of the server identity the
+        # Attester binds: none (norrp), the server_id received in the initiation response
+        # (rrp-from-initiate), or its own configuration (rrp-configured); no comparison in any.
+        group = next(g for g in FRESHNESS if variant.startswith(g + "-"))
+        rrp = variant[len(group) + 1:]
+        a_sid = {"norrp": "", "rrp-from-initiate": "sid, ", "rrp-configured": "srv, "}[rrp]
+        s_sid = "" if rrp == "norrp" else "id, "
+        if group == "epoch-received":
+            # Present-epoch style: as the epoch- variants (no Handle; the server returns the public
+            # epoch ep and recomputes with ep), but the Attester binds the epoch value it receives.
+            decls = "const ep: bitstring.\n"
+            s_new = ""
+            a_in = "in(c, e: bitstring);" if rrp == "norrp" else "in(c, (e: bitstring, sid: bitstring));"
+            s_out = "out(c, ep);" if rrp == "norrp" else "out(c, (ep, id));"
+            a_rd = f"h((e, {a_sid}tgt, csr))"
+            s_rd = f"h((ep, {s_sid}tgt, csr))"
+            fresh = "the epoch value"
+            title = "Enrollment with a shared public epoch in place of a fresh Handle, the Attester binding the epoch value it receives in the initiation response (present-epoch style)"
+        elif group == "verifier-handles":
+            # A Verifier issues Handles and both servers accept them (one Handle originator shared
+            # across Relying Parties): the server reads a Handle at initiation, accepts it if the
+            # Verifier issued it, returns it and recomputes the binding with it.
+            decls = "table vhandles(bitstring).\n"
+            s_new = "in(c, n: bitstring);\n  get vhandles(=n) in\n  "
+            a_in = "in(c, n: bitstring);" if rrp == "norrp" else "in(c, (n: bitstring, sid: bitstring));"
+            s_out = "out(c, n);" if rrp == "norrp" else "out(c, (n, id));"
+            a_rd = f"h((n, {a_sid}tgt, csr))"
+            s_rd = f"h((n, {s_sid}tgt, csr))"
+            v_def = "\nlet VerifierH() =\n  new n: bitstring;\n  insert vhandles(n);\n  out(c, n).\n"
+            v_par = " | !VerifierH()"
+            fresh = "the Handle"
+            title = "Enrollment with Handles issued by a Verifier and accepted by both servers (one Handle originator shared across Relying Parties)"
+        else:
+            # Absent-timestamp: the Attester stamps Evidence with its own time value and sends it in
+            # the request; the server recomputes the binding with the value it receives. Time windows
+            # are not modelled: the timestamp is a fresh public value the Attester creates. The
+            # server returns server_id; only rrp-from-initiate reads it.
+            s_new = ""
+            a_in = ("in(c, sid: bitstring);" if rrp == "rrp-from-initiate" else "in(c, _: bitstring);") + "\n  new ts: bitstring;\n  out(c, ts);"
+            s_out = "out(c, id);"
+            a_ts = "ts, "
+            s_ts = "ts: bitstring, "
+            a_rd = f"h((ts, {a_sid}tgt, csr))"
+            s_rd = f"h((ts, {s_sid}tgt, csr))"
+            fresh = "the timestamp"
+            title = "Enrollment with a timestamp of the Attester's own, sent in the request, in place of a Handle (absent-timestamp; the timestamp is a fresh public value)"
+        if rrp == "rrp-from-initiate":
+            decls += "event AttesterBinds(bitstring, bitstring, bitstring).\n"
+            a_binds = "\n  event AttesterBinds(sid, tgt, csr);"
+        title += "; " + {"norrp": f"Evidence binds {fresh}, the Target and the CSR, no server identity",
+                         "rrp-from-initiate": f"Evidence binds {fresh}, the server_id received in the initiation response, the Target and the CSR, without comparison",
+                         "rrp-configured": f"Evidence binds {fresh}, the server identity from the Attester's configuration, the Target and the CSR, without comparison"}[rrp]
     elif variant.startswith("epoch-"):
         # Absent-epoch with a remote initiate: the server creates no Handle, returns the public epoch
         # ep and recomputes the binding with ep; the Attester binds ep, not the epoch field it receives.
@@ -153,10 +216,11 @@ query t: bitstring, x: bitstring; event(Issued(id1, t, x)) ==> event(AttesterInt
                           "nonce-rrp-configured-uniqueness": U1,
                           "epoch-norrp": Q1 + U1,
                           "epoch-rrp-from-initiate": Q1 + B1 + U1,
-                          "epoch-rrp-configured": Q1 + U1}.get(variant, Q1 + Q2 + Q3)
+                          "epoch-rrp-configured": Q1 + U1,
+                          **{v: Q1 + B1 + U1 if v.endswith("rrp-from-initiate") else Q1 + U1 for v in FRESHNESS_SOURCES}}.get(variant, Q1 + Q2 + Q3)
         leak = " out(c, tk);" if variant == "bind-tee-key-leaked" else ""
-        proc = "out(c, pk(tk)); out(c, pk(ca1)); out(c, pk(ca2));" + leak + "\n  ( !Attester(id1, tA) | !Server(id1, ca1) | !Server(id2, ca2) )"
-    if variant in RRP_SOURCE:
+        proc = "out(c, pk(tk)); out(c, pk(ca1)); out(c, pk(ca2));" + leak + "\n  ( !Attester(id1, tA) | !Server(id1, ca1) | !Server(id2, ca2)" + v_par + " )"
+    if variant in RRP_SOURCE + FRESHNESS_SOURCES:
         # Without preciseActions, ProVerif lets one Attester session read two different initiation
         # responses, and U1 comes back "cannot be proved" with no attack trace; see README.md.
         decls = "set preciseActions = true.\n" + decls
@@ -168,12 +232,12 @@ let Attester(srv: bitstring, tgt: bitstring) =
   {a_in}
   event AttesterIntends(srv, tgt, csr);{a_binds}
   let ev = sign((meas, {a_rd}), tk) in
-  out(c, (tgt, csr, ev)).
+  out(c, (tgt, {a_ts}csr, ev)).
 
 let Server(id: bitstring, ca: skey) =
   in(c, tgt: bitstring);
   {s_new}{s_out}
-  in(c, (tgt2: bitstring, csr: bitstring, ev: bitstring));
+  in(c, (tgt2: bitstring, {s_ts}csr: bitstring, ev: bitstring));
   if tgt2 = tgt then
   let (m: bitstring, rd: bitstring) = checksig(ev, pk(tk)) in
   if m = meas then
@@ -183,7 +247,7 @@ let Server(id: bitstring, ca: skey) =
   if rd = {s_rd} then
   event Issued(id, tgt, csr);
   out(c, sign((id, tgt, pkcb), ca)).
-
+{v_def}
 process
   {proc}
 """
@@ -250,6 +314,15 @@ if __name__ == "__main__":
         "enrollment-epoch-norrp.pv": enrollment("epoch-norrp"),
         "enrollment-epoch-rrp-from-initiate.pv": enrollment("epoch-rrp-from-initiate"),
         "enrollment-epoch-rrp-configured.pv": enrollment("epoch-rrp-configured"),
+        "enrollment-epoch-received-norrp.pv": enrollment("epoch-received-norrp"),
+        "enrollment-epoch-received-rrp-from-initiate.pv": enrollment("epoch-received-rrp-from-initiate"),
+        "enrollment-epoch-received-rrp-configured.pv": enrollment("epoch-received-rrp-configured"),
+        "enrollment-verifier-handles-norrp.pv": enrollment("verifier-handles-norrp"),
+        "enrollment-verifier-handles-rrp-from-initiate.pv": enrollment("verifier-handles-rrp-from-initiate"),
+        "enrollment-verifier-handles-rrp-configured.pv": enrollment("verifier-handles-rrp-configured"),
+        "enrollment-timestamp-norrp.pv": enrollment("timestamp-norrp"),
+        "enrollment-timestamp-rrp-from-initiate.pv": enrollment("timestamp-rrp-from-initiate"),
+        "enrollment-timestamp-rrp-configured.pv": enrollment("timestamp-rrp-configured"),
         "retrieval-base.pv": retrieval("base"),
         "retrieval-auth.pv": retrieval("auth"),
         "retrieval-auth-compromised-vault2.pv": retrieval("auth-compromised-vault2"),

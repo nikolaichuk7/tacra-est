@@ -1,6 +1,6 @@
 # The EST profile of TACRA in ProVerif: three attacks, the proofs, and the assumptions
 
-`gen.py` writes fifteen models from one template so that the "as in -00" and "as in the pull
+`gen.py` writes twenty-four models from one template so that the "as in -00" and "as in the pull
 request" variants differ only in the lines that the pull request changes. `results/` holds the
 ProVerif 2.05 output, unedited.
 
@@ -66,6 +66,37 @@ These six models set ProVerif's `preciseActions`. Without it, ProVerif lets one 
 read two different initiation responses and reports U1 as "cannot be proved", with no attack trace,
 in three of them; `results/proverif-20260926T231625Z-rrp-source-without-preciseActions.txt` is that
 run, of the first five. Every other result is the same with or without the setting.
+
+## Three more sources of freshness: nine more models
+
+The same three sources of the bound identity (none, received in the initiation response, from the
+Attester's own configuration), crossed with three more ways freshness arrives: the epoch value the
+Attester receives in the initiation response (present-epoch); Handles issued by a Verifier and
+accepted by both servers (one Handle originator shared across Relying Parties, modelled with a
+table the Verifier inserts into and each server looks up); and a timestamp of the Attester's own,
+sent in the request and recomputed with by the server (absent-timestamp; time windows are not
+modelled, the timestamp is a fresh public value). Results:
+`results/proverif-20260926T233733Z-freshness-sources.txt`.
+
+| model | freshness | identity the Attester binds | Q1 | B1 | U1 |
+|---|---|---|---|---|---|
+| `enrollment-epoch-received-norrp.pv` | epoch received in the response | none | false | | **false** |
+| `enrollment-epoch-received-rrp-from-initiate.pv` | epoch received in the response | received in the initiation response | false | true | true |
+| `enrollment-epoch-received-rrp-configured.pv` | epoch received in the response | from its own configuration | true | | true |
+| `enrollment-verifier-handles-norrp.pv` | a Verifier's Handle, accepted by both servers | none | false | | **false** |
+| `enrollment-verifier-handles-rrp-from-initiate.pv` | a Verifier's Handle, accepted by both servers | received in the initiation response | false | true | true |
+| `enrollment-verifier-handles-rrp-configured.pv` | a Verifier's Handle, accepted by both servers | from its own configuration | true | | true |
+| `enrollment-timestamp-norrp.pv` | the Attester's timestamp, in the request | none | false | | **false** |
+| `enrollment-timestamp-rrp-from-initiate.pv` | the Attester's timestamp, in the request | received in the initiation response | false | true | true |
+| `enrollment-timestamp-rrp-configured.pv` | the Attester's timestamp, in the request | from its own configuration | true | | true |
+
+What the rows show. Whenever the freshness value is not tied to one server's session, whether a
+shared epoch, a Handle any server accepts, or the Attester's own timestamp, the same Evidence is
+accepted by both servers unless an identity is bound (U1 false), and binding either identity
+restores U1. As with a fresh Handle, only an identity from the Attester's own configuration gives
+Q1. These nine models also set `preciseActions`; without it, U1 of the three
+`rrp-from-initiate` models comes back "cannot be proved", with no attack trace, and every other
+result is the same.
 
 ## What is modelled
 
