@@ -12,6 +12,8 @@ ZONE="${2:-us-central1-c}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 NAME="tacra-est-snp-$(echo "$STAMP" | tr -d 'TZ' | cut -c3-12)"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
+# the code the guest runs: the commit, marked -dirty if impl/ differs from it
+CODE_REV="$(git -C "$HERE" rev-parse --short=12 HEAD)$(git -C "$HERE" diff --quiet HEAD -- impl || echo -dirty)"
 OUT="$HERE/evidence/${STAMP}-gcp-sev-snp"
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
@@ -49,7 +51,7 @@ echo "== run drills (as root: /dev/sev-guest), burst of 200 reports"
 gcloud compute ssh "$NAME" --project="$PROJECT" --zone="$ZONE" --command="
 set -e
 sudo mkdir -p /root/evidence
-sudo ~/venv/bin/python3 ~/impl/run_drills.py --tee sev-snp --out /root/evidence/${STAMP} --burst 200 2>&1 | tail -30
+sudo ~/venv/bin/python3 ~/impl/run_drills.py --tee sev-snp --out /root/evidence/${STAMP} --burst 200 --code-rev ${CODE_REV} 2>&1 | tail -30
 sudo sh -c 'cd /root/evidence/${STAMP} && uname -a > kernel.txt && (dmesg 2>/dev/null | grep -i -E \"sev|snp\" > dmesg-sev.txt || true) && (curl -s -H Metadata-Flavor:Google http://metadata.google.internal/computeMetadata/v1/instance/machine-type > machine-type.txt || true) && sha256sum * > sha256sums.txt'
 sudo chmod -R a+r /root/evidence/${STAMP}; sudo cp -r /root/evidence/${STAMP} ~/evidence-out
 "

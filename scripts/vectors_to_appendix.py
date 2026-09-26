@@ -41,23 +41,53 @@ def block(title, obj):
     print("")
 
 
+def initiate(mode_title, q, mechanism):
+    print("## %s: attest-initiate" % mode_title)
+    print("")
+    print("The EST Client sends `GET /.well-known/est/attest-initiate` with the query parameters "
+          "`target=%s` and `credential_type=%s`, percent-encoded. The EST Server's policy provisions "
+          "this Target by %s; its AttestationInitiationResponse:" % (q["target"], q["credential_type"], mechanism))
+    print("")
+
+
+def json_block(obj):
+    print("~~~ json")
+    print(json.dumps(shorten(obj), indent=2, sort_keys=True))
+    print("~~~")
+    print("")
+
+
 def main(path):
     v = json.load(open(path))
     print("# Example Exchange {#examples}")
-
     print("")
     print("Messages of one enrollment and one retrieval as produced by the reference implementation "
-          "[TACRA-EST-IMPL] with a %s Attester (run %s). Byte strings longer than 40 characters are "
+          "{{TACRA-EST-IMPL}} with a %s Attester (run %s%s). Byte strings longer than 40 characters are "
           "shown as their length and SHA-256; the full messages are in the repository." % (
-              "live AMD SEV-SNP" if v.get("tee") == "sev-snp" else "mock", v.get("stamp")))
+              "live AMD SEV-SNP" if v.get("tee") == "sev-snp" else "mock", v.get("stamp"),
+              ", code %s" % v["code_rev"] if v.get("code_rev") else ""))
     print("")
     e = v["enrollment"]
-    block("Enrollment: AttestationInitiationResponse", e["AttestationInitiationResponse"])
-    block("Enrollment: AttestedEnrollmentRequest", e["AttestedEnrollmentRequest"])
+    initiate("Enrollment", e["attest_initiate_query"], "Enrollment")
+    json_block(e["AttestationInitiationResponse"])
+    print("## Enrollment: AttestedEnrollmentRequest")
+    print("")
+    json_block(e["AttestedEnrollmentRequest"])
+    ev = json.loads(b64u_dec(e["AttestedEnrollmentRequest"]["evidence"]))
+    print("The byte string in `evidence`, decoded; `profile` names its format, the JSON object the "
+          "Attesting Environment produced, with the attestation report and the certificates of its "
+          "signing key:")
+    print("")
+    json_block(ev)
     r = v["retrieval"]
-    block("Retrieval: AttestationInitiationResponse", r["AttestationInitiationResponse"])
-    block("Retrieval: AttestedRetrievalRequest", r["AttestedRetrievalRequest"])
-    block("Retrieval: EncryptedCredentialBundle", r["EncryptedCredentialBundle"])
+    initiate("Retrieval", r["attest_initiate_query"], "Retrieval")
+    json_block(r["AttestationInitiationResponse"])
+    print("## Retrieval: AttestedRetrievalRequest")
+    print("")
+    json_block(r["AttestedRetrievalRequest"])
+    print("## Retrieval: EncryptedCredentialBundle")
+    print("")
+    json_block(r["EncryptedCredentialBundle"])
 
 
 if __name__ == "__main__":

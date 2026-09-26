@@ -34,10 +34,14 @@ from verifier import Verifier
 S1_ID = "https://s1.tacra.example"
 S2_ID = "https://s2.tacra.example"
 HINT = "workload.tacra.example"
-TARGET_A = "https://db.tacra.example"          # the Target the Attester seeks credentials for
-TARGET_B = "https://payments.tacra.example"    # another Target the same servers provision
+TARGET_A = "https://db.tacra.example"          # the Target the Attester seeks a new credential for (Enrollment)
+TARGET_B = "https://payments.tacra.example"    # another Target the same servers provision (Enrollment)
+TARGET_R = "https://ledger.tacra.example"      # a Target whose existing credential the Vault releases (Retrieval)
 CTYPE = "x509"
-TARGETS = {TARGET_A: {CTYPE}, TARGET_B: {CTYPE}}
+# The servers' policy: the mechanism is chosen per Target (TACRA Design Goal 5)
+TARGETS = {TARGET_A: {"mechanism": "enroll", "credential_types": {CTYPE}},
+           TARGET_B: {"mechanism": "enroll", "credential_types": {CTYPE}},
+           TARGET_R: {"mechanism": "retrieve", "credential_types": {CTYPE}}}
 
 
 def parse_pkcs7_certs(b64_body: bytes) -> list[x509.Certificate]:
@@ -61,7 +65,7 @@ def drill_enroll(tee, server_id, conduit, vault_origin=None, legacy=False, targe
     a = Attester(tee, server_id, target, CTYPE, vault_origin_spki_der=vault_origin, legacy_binding=legacy)
     rec = {"server_id": server_id, "target": target, "legacy_binding": legacy}
     try:
-        init = conduit.initiate("enroll", **a.initiation_params())
+        init = conduit.initiate(**a.initiation_params())
         rec["initiation_response"] = init
         a.accept_initiation(init)
         req = a.make_enrollment_request(HINT)
@@ -88,11 +92,11 @@ def drill_enroll(tee, server_id, conduit, vault_origin=None, legacy=False, targe
     return rec, a
 
 
-def drill_retrieve(tee, server_id, conduit, vault_origin, legacy_bundle=False, forge=None, target=TARGET_A):
+def drill_retrieve(tee, server_id, conduit, vault_origin, legacy_bundle=False, forge=None, target=TARGET_R):
     a = Attester(tee, server_id, target, CTYPE, vault_origin_spki_der=vault_origin, legacy_bundle_base_mode=legacy_bundle)
     rec = {"server_id": server_id, "target": target, "legacy_bundle_base_mode": legacy_bundle, "forged_bundle": forge is not None}
     try:
-        init = conduit.initiate("retrieve", **a.initiation_params())
+        init = conduit.initiate(**a.initiation_params())
         rec["initiation_response"] = init
         a.accept_initiation(init)
         req = a.make_retrieval_request(HINT)
@@ -151,6 +155,7 @@ def main():
     ap.add_argument("--tee", choices=["mock", "sev-snp"], required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--burst", type=int, default=0, help="number of consecutive reports to time (hardware)")
+    ap.add_argument("--code-rev", default=None, help="git revision of the code, recorded in the evidence")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     stamp = utc_stamp()
@@ -163,7 +168,7 @@ def main():
     S1, S2, S1L, S2L = (servers[k] for k in ("S1", "S2", "S1-legacy", "S2-legacy"))
     vault1 = S1["state"].vault.origin_spki_der()
     vault1L = S1L["state"].vault.origin_spki_der()
-    drills = {"stamp": stamp, "tee": a.tee, "host": os.uname().nodename, "drills": {}}
+    drills = {"stamp": stamp, "tee": a.tee, "host": os.uname().nodename, "code_rev": a.code_rev, "drills": {}}
     D = drills["drills"]
 
     # D1 honest enrollment at S1
@@ -176,14 +181,14 @@ def main():
     D["D4_server_substitution_draft00"], _ = drill_enroll(tee, S1_ID, EvilConduit(S2L["endpoint"], pretend_server_id=S1_ID), legacy=True)
     # D5 bundle substitution against the PR text: forged base-mode bundle, Attester in auth mode
     attacker_vault = SecretVault()   # the attacker's own key; it never signs as S1's Vault
-    def forge(cek, sid, handle, hint, gid, target=TARGET_A):
+    def forge(cek, sid, handle, hint, gid, target=TARGET_R):
         items = {"credential_items": [{"type": "shared-signing-key", "format": "PKCS8-PEM",
                  "value": attacker_vault.signing_key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                                                                     serialization.NoEncryption()).decode()}], "metadata": {"note": "attacker"}}
         return EvilConduit.forge_bundle(cek, sid, handle, hint, gid, items, target)
     D["D5_bundle_substitution_pr_text"], _ = drill_retrieve(tee, S1_ID, Conduit(S1["endpoint"]), vault1, forge=forge)
     # D5b the forged bundle claims to be hpke-auth and is sealed with the attacker's own sender key
-    def forge_auth(cek, sid, handle, hint, gid, target=TARGET_A):
+    def forge_auth(cek, sid, handle, hint, gid, target=TARGET_R):
         b = forge(cek, sid, handle, hint, gid, target)
         from cryptography.hazmat.primitives import serialization as _ser
         from pyhpke import KEMKey as _K
@@ -232,12 +237,12 @@ def main():
     write_json(os.path.join(a.out, "drills.json"), drills)
 
     # test vectors from the honest exchanges
-    vectors = {"stamp": stamp, "tee": a.tee,
-               "enrollment": {"attest_initiate_query": {"mode": "enroll", "target": TARGET_A, "credential_type": CTYPE},
+    vectors = {"stamp": stamp, "tee": a.tee, "code_rev": a.code_rev,
+               "enrollment": {"attest_initiate_query": {"target": TARGET_A, "credential_type": CTYPE},
                               "AttestationInitiationResponse": D["D1_enroll_honest"].get("initiation_response"),
                               "AttestedEnrollmentRequest": D["D1_enroll_honest"].get("enrollment_request"),
                               "response_pkcs7_base64": D["D1_enroll_honest"].get("response_pkcs7_b64")},
-               "retrieval": {"attest_initiate_query": {"mode": "retrieve", "target": TARGET_A, "credential_type": CTYPE},
+               "retrieval": {"attest_initiate_query": {"target": TARGET_R, "credential_type": CTYPE},
                              "AttestationInitiationResponse": D["D2_retrieve_honest"].get("initiation_response"),
                              "AttestedRetrievalRequest": D["D2_retrieve_honest"].get("retrieval_request"),
                              "EncryptedCredentialBundle": D["D2_retrieve_honest"].get("bundle"),

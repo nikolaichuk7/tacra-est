@@ -53,9 +53,9 @@ class Conduit:
         self.ep = endpoint
         self.timings: dict[str, float] = {}
 
-    def initiate(self, mode: str, target: str, credential_type: str) -> dict:
+    def initiate(self, target: str, credential_type: str) -> dict:
         from urllib.parse import urlencode
-        q = urlencode({"mode": mode, "target": target, "credential_type": credential_type})
+        q = urlencode({"target": target, "credential_type": credential_type})
         st, ct, body, ms = self.ep.request("GET", "/.well-known/est/attest-initiate?" + q)
         self.timings["initiate_ms"] = ms
         if st != 200:
@@ -75,15 +75,15 @@ class Conduit:
 
 class EvilConduit(Conduit):
     """Sits between the Attester and the servers, as the untrusted conduit may. `pretend_server_id`
-    is what it tells the Attester in the initiation response (the Attester's intended Target), while
+    is what it tells the Attester in the initiation response (the EST Server the Attester intended), while
     the Handle comes from, and the request goes to, `self.ep` (another server)."""
 
     def __init__(self, endpoint: ServerEndpoint, pretend_server_id: str):
         super().__init__(endpoint)
         self.pretend = pretend_server_id
 
-    def initiate(self, mode: str, target: str, credential_type: str) -> dict:
-        body = super().initiate(mode, target, credential_type)
+    def initiate(self, target: str, credential_type: str) -> dict:
+        body = super().initiate(target, credential_type)
         body = dict(body)
         body["server_id"] = self.pretend     # the lie: the Attester sees the server it intended
         return body
@@ -112,8 +112,8 @@ class TargetSwapConduit(Conduit):
         super().__init__(endpoint)
         self.substitute = substitute_target
 
-    def initiate(self, mode: str, target: str, credential_type: str) -> dict:
-        return super().initiate(mode, self.substitute, credential_type)
+    def initiate(self, target: str, credential_type: str) -> dict:
+        return super().initiate(self.substitute, credential_type)
 
     def enroll(self, req: dict):
         return super().enroll(dict(req, target=self.substitute))

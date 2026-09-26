@@ -9,9 +9,12 @@ The EST Server is a conduit: it never sees a private key of the Attester's, does
 Evidence itself (the Verifier does) and does not decide issuance (the CA and the Vault do). It
 correlates the Handle of the second leg with the one it issued in the first.
 
+`attest-initiate` takes the two query parameters of the draft, `target` and `credential_type`. The
+server decides the Credential Acquisition Mode from its policy for that Target: the mechanism is
+chosen per Target (TACRA Design Goal 5), as in the TWI SIG implementation's TargetPolicy (name,
+mechanism, credential types).
+
 Implementation conveniences beyond the draft, documented here so they are not mistaken for it:
-  * `attest-initiate` accepts an optional query parameter `mode=enroll|retrieve` so that one
-    server can serve both modes in the drills; the draft has the server decide the mode.
   * `--legacy-binding` makes the CA and the Vault recompute the -00 binding, H(handle || subject)
     without server_id, to reproduce the server-substitution attack the pull request closes.
 """
@@ -128,9 +131,10 @@ class ServerState:
     def __init__(self, server_id: str, verifier: Verifier, ca: CredentialAuthority, vault: SecretVault,
                  expires_in: int = 300, hash_name: str = "sha512", legacy_binding: bool = False,
                  bundle_auth_mode: bool = True, log_path: str | None = None,
-                 targets: dict[str, set[str]] | None = None):
+                 targets: dict[str, dict] | None = None):
         self.server_id = server_id
-        # Target -> the Credential Types this server provisions for it (TACRA Sections 5.1-5.3)
+        # Target -> {"mechanism": "enroll" | "retrieve", "credential_types": {...}}: how this server
+        # provisions credentials for the Target, and which types (TACRA Design Goal 5, Sections 5.1-5.3)
         self.targets = targets or {}
         self.verifier = verifier
         self.ca = ca
@@ -184,17 +188,16 @@ class Handler(BaseHTTPRequestHandler):
         if u.path != "/.well-known/est/attest-initiate":
             return self._error(404, "not-found", "no such resource", "")
         q = parse_qs(u.query)
-        mode = (q.get("mode") or ["enroll"])[0]
         target = (q.get("target") or [""])[0]
         ctype = (q.get("credential_type") or [""])[0]
-        if mode not in ("enroll", "retrieve"):
-            return self._error(400, "bad-request", "mode must be enroll or retrieve", "")
         if not target or not ctype:
             return self._error(400, "bad-request", "target and credential_type are required", "")
-        if target not in st.targets:
+        policy = st.targets.get(target)
+        if policy is None:
             return self._error(403, "unsupported-target", "target %r is not served here" % target, "")
-        if ctype not in st.targets[target]:
+        if ctype not in policy["credential_types"]:
             return self._error(403, "unsupported-credential-type", "credential type %r is not provisioned for %r" % (ctype, target), "")
+        mode = policy["mechanism"]          # the server decides the mode, from its policy for the Target
         handle = os.urandom(32)
         with st.lock:
             st.handles[handle] = {"issued": time.time(), "mode": mode, "used": False, "target": target, "credential_type": ctype}
@@ -336,12 +339,22 @@ if __name__ == "__main__":
     ap.add_argument("--legacy-binding", action="store_true")
     ap.add_argument("--bundle-base-mode", action="store_true")
     ap.add_argument("--log", default=None)
+    ap.add_argument("--target", action="append", default=[], metavar="URI=MECHANISM:TYPE[,TYPE]",
+                    help="a Target this server provisions, e.g. https://db.tacra.example=enroll:x509 (repeatable)")
     a = ap.parse_args()
+    targets = {}
+    for spec in a.target:
+        uri, _, rest = spec.partition("=")
+        mech, _, types = rest.partition(":")
+        if not uri or mech not in ("enroll", "retrieve") or not types:
+            ap.error("--target %r: expected URI=enroll|retrieve:TYPE[,TYPE]" % spec)
+        targets[uri] = {"mechanism": mech, "credential_types": set(types.split(","))}
     mock_root = open(a.mock_root_pem).read() if a.mock_root_pem else None
     ark = open(a.pinned_ark_pem, "rb").read() if a.pinned_ark_pem else None
     state = ServerState(a.server_id, Verifier(pinned_ark_pem=ark, mock_root_pem=mock_root),
                         CredentialAuthority("TACRA demo CA", {"workload.tacra.example"}), SecretVault(),
-                        legacy_binding=a.legacy_binding, bundle_auth_mode=not a.bundle_base_mode, log_path=a.log)
+                        legacy_binding=a.legacy_binding, bundle_auth_mode=not a.bundle_base_mode, log_path=a.log,
+                        targets=targets)
     srv, port, cp = start_server(state, host="0.0.0.0", port=a.port)
     print("serving %s on port %d, TLS cert %s" % (a.server_id, port, cp))
     try:
