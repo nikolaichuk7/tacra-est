@@ -4,12 +4,30 @@
 request" variants differ only in the lines that the pull request changes. `results/` holds the
 ProVerif 2.05 output, unedited.
 
-| model | what it models | query | result |
-|---|---|---|---|
-| `enrollment-nobind.pv` | draft-novak-lamps-tacra-est-00: Evidence binds the Freshness Handle and the CSR | `Issued(sid, csr) ==> AttesterIntends(sid, csr)` | **false**: attack found |
-| `enrollment-bind.pv` | the pull request: `server_id` in the binding input, checked by the Attester and recomputed by the CA | same | **true** |
-| `retrieval-base.pv` | -00: the bundle is "encrypted to CEKpub" (base mode) | `AttesterUses(vid, s) ==> VaultReleased(vid, s)` | **false**: attack found |
-| `retrieval-auth.pv` | the pull request: HPKE `mode_auth`, the Attester decrypts under the Vault's public key | same | **true** |
+Enrollment queries: **Q1** a certificate issued by server *sid* for CSR *x* was intended by the
+Attester for *sid* (any Target); **Q2** it was intended for *sid* and for the same Target;
+**Q3** the injective form of Q2 (one issuance per intent). Retrieval: **R1** a secret the
+Attester uses was released for it by the Vault and Target it intended; **S** the Vault's secret
+stays secret.
+
+| model | binding | Q1 | Q2 | Q3 | R1 | S |
+|---|---|---|---|---|---|---|
+| `enrollment-nobind.pv` | draft -00: Handle and CSR | false | false | false | | |
+| `enrollment-serveronly.pv` | Handle, server_id, CSR (no Target) | true | **false** | false | | |
+| `enrollment-bind.pv` | the pull request: Handle, server_id, Target, CSR | true | true | true | | |
+| `enrollment-bind-compromised-s2.pv` | as above; server 2 and its CA key are the attacker's | | true (for server 1) | | | |
+| `enrollment-bind-tee-key-leaked.pv` | as above; the TEE attestation key has leaked | false | false | false | | |
+| `retrieval-base.pv` | draft -00: bundle encrypted to CEKpub | | | | false | true |
+| `retrieval-auth.pv` | the pull request: HPKE `mode_auth` | | | | true | true |
+| `retrieval-auth-compromised-vault2.pv` | as above; Vault 2's keys are the attacker's | | | | true | true |
+
+What the rows show. Binding server_id alone (the second row) stops a conduit from taking Evidence
+to another server, but not from obtaining, at the right server, a credential for a Target the
+Attester did not ask for; the Target must be bound too (third row). A compromised second server
+or Vault does not weaken the guarantee for the honest one. A leaked TEE attestation key breaks
+everything, which is the assumption the protocol rests on. In retrieval, draft -00 keeps the
+secret confidential; what it loses is integrity: the Attester can be made to use a secret no
+Vault released.
 
 ## What is modelled
 
@@ -51,7 +69,7 @@ holding the Vault's private key can produce a ciphertext the Attester will open.
 ## Reproduce
 
     python3 gen.py
-    for f in enrollment-nobind enrollment-bind retrieval-base retrieval-auth; do proverif $f.pv; done
+    for f in *.pv; do proverif $f; done
 
 ProVerif 2.05 builds from the official source with OCaml; the results in `results/` were produced
 on macOS with OCaml 5 and are byte-for-byte what the tool printed.
