@@ -98,6 +98,16 @@ Q1. These nine models also set `preciseActions`; without it, U1 of the three
 `rrp-from-initiate` models comes back "cannot be proved", with no attack trace, and every other
 result is the same.
 
+## The order of the bound values (30 September 2026)
+
+TACRA master 912bd50 (30 September 2026) put the Target before the Relying Party identifier in the
+binding input. The models above hash the identity before the Target, as in `h((n, srv, tgt, csr))`.
+`target_first.py` rewrites every hashed tuple so that the Target comes first and changes nothing
+else (16 models have both values in the hash; the other 8 bind no identity or no Target). ProVerif
+on the 24 rewritten models gives the same 62 RESULT lines, model by model:
+`results/proverif-20260930T171849Z-target-first.txt`. The order does not matter to the analysis, so
+the models are kept as they were.
+
 ## What is modelled
 
 - The attacker is the network, that is, the untrusted conduit of TACRA Section 7.2: the EST
@@ -149,6 +159,11 @@ private key can produce a ciphertext the Attester will open.
 
     python3 gen.py
     for f in *.pv; do proverif $f; done
+
+The same models with the Target first:
+
+    python3 gen.py && python3 target_first.py /tmp/target-first
+    cd /tmp/target-first && for f in *.pv; do proverif $f; done
 
 ProVerif 2.05 builds from the official source with OCaml; the results in `results/` were produced
 on macOS with OCaml 5 and are what the tool printed, unedited, with `###` header lines added for
