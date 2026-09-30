@@ -86,7 +86,8 @@ class Attester:
             self.handle = encode_timestamp(self.clock())    # stamped as the Evidence is produced
         if self.legacy_binding:
             return hashlib.sha512((self.handle or b"") + subject).digest()
-        return binding_value(self.handle, self.bound_rrp_id, self.target, subject, self.hash_name)
+        return binding_value(handle=self.handle, target=self.target, rrp_id=self.bound_rrp_id, subject=subject,
+                             hash_name=self.hash_name)
 
     def _evidence(self, bv: bytes) -> tuple[bytes, str]:
         t0 = time.monotonic()

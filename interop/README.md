@@ -29,9 +29,9 @@ types, `internal/mockca/attest.go`); the pull request's text and our server do t
   presence is required, but `CSRHash()` is never called on the verify path and the mock EAT omits
   the CSR by design (`attest.go` line 190). A conduit that swaps the CSR after Evidence is
   produced still obtains a certificate for the swapped key. This is the CSR-substitution gap; the
-  pull request closes it by putting the freshness element, the RRP identifier (`rrp_id`, formerly
-  `server_id`), the Target and the CSR in one binding input that the Credential Authority
-  recomputes.
+  pull request closes it by putting the freshness element, the Target, the RRP identifier
+  (`rrp_id`, formerly `server_id`) and the CSR in one binding input that the Credential Authority
+  recomputes (in that order since TACRA master 912bd50, 30 September 2026).
 
 - **T3, the bundle authenticates the key holder, not the sender.** `SealCredentialBundle` needs
   only CEKpub, which travels in the request through the untrusted conduit; `Open` checks the AEAD

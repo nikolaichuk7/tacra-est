@@ -31,37 +31,49 @@ def canonical_json(obj) -> bytes:
 
 
 # ---------------------------------------------------------------------------------------------
-# The binding input (pull request, "Binding Input"):
+# The binding input (TACRA, "Binding Credential Keys to Evidence"; the order of TACRA master
+# 912bd50, 30 September 2026, which put the Target before the Relying Party identifier):
 #
 #   binding_input = len32(handle)  || handle
-#                || len32(rrp_id)  || rrp_id
 #                || len32(target)  || target
+#                || len32(rrp_id)  || rrp_id
 #                || len32(subject) || subject
 #
 # handle: the freshness element the request carries (the Freshness Handle for present-nonce and
 # present-epoch, the locally held epoch marker for absent-epoch, the Attester's timestamp for
-# absent-timestamp), empty only for absent-none; rrp_id: UTF-8 of the identifier of the RATS
-# Relying Party that will rely on the Evidence (the Credential Authority for Enrollment, the
-# Secret Vault for Retrieval); target: UTF-8 of the Target, the RATS-unaware Relying Party for
-# which the Attester seeks credentials (TACRA Section 2); subject: DER of the CSR (Enrollment) or
-# DER SubjectPublicKeyInfo of CEKpub (Retrieval). The digest is SHA-512 where the platform field
-# is 64 octets.
+# absent-timestamp), empty only for absent-none; target: UTF-8 of the Target, the RATS-unaware
+# Relying Party for which the Attester seeks credentials (TACRA Section 2); rrp_id: UTF-8 of the
+# identifier of the RATS Relying Party that will rely on the Evidence (the Credential Authority for
+# Enrollment, the Secret Vault for Retrieval); subject: DER of the CSR (Enrollment) or DER
+# SubjectPublicKeyInfo of CEKpub (Retrieval). The digest is SHA-512 where the platform field is
+# 64 octets.
+#
+# The arguments are keyword-only, so that no caller can pass the two strings in the wrong order.
+# Evidence recorded before 30 September 2026 binds rrp_id before target;
+# binding_input_rrp_first() recomputes that order, for checking those runs only.
 
 def len32(b: bytes) -> bytes:
     return struct.pack(">I", len(b))
 
 
-def binding_input(handle: bytes, rrp_id: str, target: str, subject: bytes) -> bytes:
-    rid = rrp_id.encode("utf-8")
+def binding_input(*, handle: bytes, target: str, rrp_id: str, subject: bytes) -> bytes:
     tgt = target.encode("utf-8")
+    rid = rrp_id.encode("utf-8")
+    return len32(handle) + handle + len32(tgt) + tgt + len32(rid) + rid + len32(subject) + subject
+
+
+def binding_input_rrp_first(*, handle: bytes, target: str, rrp_id: str, subject: bytes) -> bytes:
+    """The order used before 30 September 2026 (rrp_id before target); only to check old Evidence."""
+    tgt = target.encode("utf-8")
+    rid = rrp_id.encode("utf-8")
     return len32(handle) + handle + len32(rid) + rid + len32(tgt) + tgt + len32(subject) + subject
 
 
 HASHES = {"sha512": hashlib.sha512, "sha384": hashlib.sha384, "sha256": hashlib.sha256}
 
 
-def binding_value(handle: bytes, rrp_id: str, target: str, subject: bytes, hash_name: str = "sha512") -> bytes:
-    return HASHES[hash_name](binding_input(handle, rrp_id, target, subject)).digest()
+def binding_value(*, handle: bytes, target: str, rrp_id: str, subject: bytes, hash_name: str = "sha512") -> bytes:
+    return HASHES[hash_name](binding_input(handle=handle, target=target, rrp_id=rrp_id, subject=subject)).digest()
 
 
 # absent-timestamp: the Attester's time travels in the request's `handle` field, and so in the

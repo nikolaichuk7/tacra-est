@@ -245,7 +245,8 @@ class ServerState:
             # draft -00 shape: H(handle || subject); neither the RRP nor the Target is bound
             import hashlib as _h
             return _h.sha512(handle + subject).digest()
-        return binding_value(handle, self.rrp(mode).rrp_id, target, subject, self.hash_name)
+        return binding_value(handle=handle, target=target, rrp_id=self.rrp(mode).rrp_id, subject=subject,
+                             hash_name=self.hash_name)
 
 
 class Handler(BaseHTTPRequestHandler):
