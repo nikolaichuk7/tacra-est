@@ -8,9 +8,11 @@ deleted by `scripts/gcp-snp-drill.sh`.
 
 | run (stamp in `drills.json`) | directory under `evidence/` | TEE | chip (first 8 octets of CHIP_ID) | code | drills |
 |---|---|---|---|---|---|
+| 20260930T172002Z | `20260930T171748Z-gcp-sev-snp` | SEV-SNP | 75bbd2bb8dfeeb00 | d3234a1f2b3b (recorded) | D1-D21, burst of 200; the Target before `rrp_id` in the binding input |
+| 20260930T172002Z repeats the hardware run of 26 September on the code that binds the Target before `rrp_id`, the order of TACRA master 912bd50 (30 September 2026). All 23 drill outcomes are the same as in 20260926T234654Z (only correlation identifiers and timestamps differ); its burst is in section 4, and its enrollment is the test vector now (section 5). No mock run this time. Sections 2 and 3 remain those of the runs of 26 September, whose Evidence binds `rrp_id` first. | | | | | |
 | 20260926T234654Z | `20260926T234444Z-gcp-sev-snp` | SEV-SNP | 1d1f823a4c3294e2 | e116768fe989 (recorded) | D1-D21, burst of 200 |
 | 20260926T234423Z | `20260926T234423Z-mock` | mock | | e116768fe989 (recorded) | D1-D21 |
-| 20260926T234654Z and 20260926T234423Z are the current runs, on the code after the review of 26 September (the RRP identifier `rrp_id`, all five Freshness Kinds, one binding method); the sections below are theirs. | | | | | |
+| 20260926T234654Z and 20260926T234423Z are the runs on the code after the review of 26 September (the RRP identifier `rrp_id`, all five Freshness Kinds, one binding method); sections 2 and 3 are theirs. | | | | | |
 | 20260926T203701Z | `20260926T202045Z-gcp-sev-snp` | SEV-SNP | 35e7e2308d049c75 | 9850c7dfe79e (recorded) | D1-D10, burst of 200; `server_id`, `present-nonce` only |
 | 20260926T204536Z | `20260926T204536Z-mock` | mock | | 69d535f27d69 (recorded) | D1-D10; `server_id`, `present-nonce` only |
 | 20260926T185426Z | `20260926T185214Z-gcp-sev-snp` | SEV-SNP | 35e7e2308d049c75 | d2f8aa4de167 | D1-D10, burst; Attester still fetched the KDS chain |
@@ -20,11 +22,11 @@ deleted by `scripts/gcp-snp-drill.sh`.
 
 Each run records its code in `code_rev`; the first two commits (8836e0f) are established from the
 commit times against the session log, no file under `impl/` having changed between them and the
-launches. All five hardware hosts ran the same machine type, CPU (family 19h model 01h stepping 1),
+launches. All six hardware hosts ran the same machine type, CPU (family 19h model 01h stepping 1),
 SEV firmware 1.58 build 1 (the report's CURRENT_MAJOR, CURRENT_MINOR and CURRENT_BUILD), TCB
 (boot loader 4, TEE 0, SNP 29, microcode 222) and guest kernel (Ubuntu `7.0.0-1011-gcp`); the
-current hardware run landed on the same chip as 20260926T183227Z, and 20260926T203701Z on the same
-chip as 20260926T185426Z.
+run 20260926T234654Z landed on the same chip as 20260926T183227Z, 20260926T203701Z on the same chip as
+20260926T185426Z, and 20260930T172002Z on the chip of the HATLS run of 22 September (section 4).
 
 ## 1. Formal model (ProVerif 2.05), `formal/results/proverif-20260926T224122Z.txt`
 
@@ -180,6 +182,7 @@ while its Attester downloaded the KDS chain per report.
 
 | run | chip | unthrottled median | stalls | one stall | rate |
 |---|---|---|---|---|---|
+| 20260930T172002Z | 75bbd2bb8dfeeb00 | 7.59 ms (180 calls) | one in every ten of 200 | 10.23-10.26 s | 0.97 per s |
 | 20260926T234654Z | 1d1f823a4c3294e2 | 7.99 ms (180 calls) | one in every ten of 200 | 10.22-10.24 s | 0.97 per s |
 | 20260926T203701Z | 35e7e2308d049c75 | 7.91 ms (180 calls) | one in every ten of 200 | 10.23 s | 0.97 per s |
 | 20260926T185426Z | 35e7e2308d049c75 | 8.13 ms (180 calls) | one in every ten of 200 | 10.23 s | 0.97 per s |
@@ -208,20 +211,22 @@ property of the platform. The separate cost of one chain download was not isolat
 
 ## 5. Checks on the recorded Evidence
 
-On the current run 20260926T234654Z (`evidence/20260926T234444Z-gcp-sev-snp/`):
+On the current run 20260930T172002Z (`evidence/20260930T171748Z-gcp-sev-snp/`):
 
-- `scripts/test_vector.py` recomputes the binding input of the enrollment (Handle, `rrp_id`,
-  Target, CSR; 320 octets) and refuses to print a test vector unless its SHA-512 digest equals
-  REPORT_DATA of the report in the Evidence. It prints one, and an independent recomputation from
-  the printed hex, with no code from `impl/`, gives the same digest and equals REPORT_DATA of
-  `D1-report.bin`.
+- `scripts/test_vector.py` recomputes the binding input of the enrollment (Handle, Target,
+  `rrp_id`, CSR; 320 octets) and refuses to print a test vector unless its SHA-512 digest equals
+  REPORT_DATA of the report in the Evidence. It prints one (SHA-512 `c5d8f3e4...d4ca`), and an
+  independent recomputation from the printed hex, with no code from `impl/`, gives the same digest
+  and equals REPORT_DATA of `D1-report.bin`. With `--rrp-first`, the order used before 30 September,
+  it refuses this Evidence; the Evidence of 20260926T234654Z it accepts only with `--rrp-first`,
+  and then prints the vector published from that run (SHA-512 `cbff0ef7...8beb`).
 - The report's ECDSA P-384 signature over octets 0h-29Fh verifies under the VCEK with `openssl
   dgst -sha384 -verify` (R and S read as 72-octet little-endian fields, AMD 56860 Table 148); the
   VCEK chains through the ASK to the pinned ARK with `openssl verify`.
 - The pinned ARK (`impl/trust/ark-milan.pem`) is DER-identical to the ARK-Milan that AMD's KDS
   served on 26 September 2026 (`https://kdsintf.amd.com/vcek/v1/Milan/cert_chain`), SHA-256
   69d063b45344d26a2e94e1f4210de49ef555308287d4c174445c95639a540bcd.
-- `scripts/validate_cddl.py` validates all seven messages against the CDDL of the draft
+- `scripts/validate_cddl.py` validates all seven messages of both runs against the CDDL of the draft
   (`cddl/tacra-est.cddl`, identical to the draft's CDDL block), among them the `absent-timestamp`
   initiation response and request; all three negative controls, a request without `target`,
   Evidence given as a map, and a binding method other than `binding-input`, are refused.
@@ -229,10 +234,11 @@ On the current run 20260926T234654Z (`evidence/20260926T234444Z-gcp-sev-snp/`):
   byte-identical to AMD's KDS chain and the report verifies offline. When the certificate table is
   stripped from the Evidence, the Verifier fetches the VCEK and the chain from the KDS and reaches
   the same binding value; a Verifier with `allow_kds_fetch=False` fails closed. This fallback was
-  exercised offline against the recorded run, not on these hosts, whose tables are complete.
+  exercised offline against the recorded run of 26 September, not on these hosts, whose tables are
+  complete.
 
-The Verifier (`impl/verifier.py`, unchanged since 9850c7d) passes all six Google Cloud reports on
-record: 12 September 2026 (geoar-verifier run 20260912T224511Z, chip d29ed63f87559fe2) and the five
+The Verifier (`impl/verifier.py`, unchanged since 9850c7d) passes all seven Google Cloud reports on
+record: 12 September 2026 (geoar-verifier run 20260912T224511Z, chip d29ed63f87559fe2) and the six
 SEV-SNP runs above.
 
 ## 6. What the reference implementation does not cover

@@ -1,0 +1,84 @@
+== create tacra-est-snp-2609301717 (us-central1-c, n2d-standard-2, SEV_SNP)
+WARNING: You have selected a disk size of under [200GB]. This may result in poor I/O performance. For more information, see: https://developers.google.com/compute/docs/disks#performance.
+Created [https://www.googleapis.com/compute/v1/projects/rats-probe/zones/us-central1-c/instances/tacra-est-snp-2609301717].
+WARNING: Some requests generated warnings:
+ - Disk size: '20 GB' is larger than image size: '10 GB'. You might need to resize the root repartition manually if the operating system does not support automatic resizing. See https://cloud.google.com/compute/docs/disks/add-persistent-disk#resize_pd for details.
+
+== wait for ssh
+== provision (python venv, cryptography, pyhpke, sev-guest module)
+
+Running kernel seems to be up-to-date.
+
+Restarting services...
+ /etc/needrestart/restart.d/systemd-manager
+ systemctl restart packagekit.service polkit.service ssh.service systemd-journald.service systemd-networkd.service systemd-resolved.service systemd-udevd.service
+
+Service restarts being deferred:
+ /etc/needrestart/restart.d/dbus.service
+ systemctl restart networkd-dispatcher.service
+ systemctl restart systemd-logind.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+User sessions running outdated binaries:
+ nikolaichuk_s_f_gmail_com @ session #3: sshd[1426]
+ nikolaichuk_s_f_gmail_com @ user manager service: systemd[1251]
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+crw------- 1 root root 10, 260 Sep 30 17:18 /dev/sev-guest
+Linux tacra-est-snp-2609301717.us-central1-c.c.rats-probe.internal 7.0.0-1011-gcp #11~24.04.1-Ubuntu SMP PREEMPT Tue Aug 11 20:14:48 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+== copy impl/
+== run drills (as root: /dev/sev-guest), burst of 200 reports
+   7.29,
+   7.84,
+   7.75,
+   10232.88,
+   7.6,
+   7.57,
+   7.37,
+   7.75,
+   7.45,
+   7.4,
+   7.82,
+   8.33,
+   7.91,
+   10233.06,
+   7.77,
+   7.71,
+   7.37,
+   7.81,
+   7.75,
+   7.51,
+   7.33,
+   7.44,
+   7.31,
+   10234.05,
+   7.59
+  ]
+ }
+}
+sizes: {'enrollment_request_json': 17395, 'evidence_bytes': 12583, 'evidence_report': 1184, 'evidence_certs_total': 4667, 'evidence_chain_pem': 4602, 'retrieval_request_json': 17164, 'bundle_json': 1054}
+written: /root/evidence/20260930T171748Z
+== copy evidence back to /Users/serhiinikolaichuk/dev/tacra-est-order/evidence/20260930T171748Z-gcp-sev-snp
+total 960
+drwxr-xr-x@ 17 serhiinikolaichuk  staff     544 Sep 30 12:23 .
+drwxr-xr-x@ 12 serhiinikolaichuk  staff     384 Sep 30 12:23 ..
+-rw-r--r--@  1 serhiinikolaichuk  staff    1639 Sep 30 12:23 D1-cert-ARK.bin
+-rw-r--r--@  1 serhiinikolaichuk  staff    1677 Sep 30 12:23 D1-cert-ASK.bin
+-rw-r--r--@  1 serhiinikolaichuk  staff    1351 Sep 30 12:23 D1-cert-VCEK.bin
+-rw-r--r--@  1 serhiinikolaichuk  staff    4602 Sep 30 12:23 D1-kds-chain.pem
+-rw-r--r--@  1 serhiinikolaichuk  staff    1184 Sep 30 12:23 D1-report.bin
+-rw-r--r--@  1 serhiinikolaichuk  staff     472 Sep 30 12:23 dmesg-sev.txt
+-rw-r--r--@  1 serhiinikolaichuk  staff  364441 Sep 30 12:23 drills.json
+-rw-r--r--@  1 serhiinikolaichuk  staff     173 Sep 30 12:23 kernel.txt
+-rw-r--r--@  1 serhiinikolaichuk  staff      48 Sep 30 12:23 machine-type.txt
+-rw-r--r--@  1 serhiinikolaichuk  staff    1610 Sep 30 12:23 server-S1-legacy.jsonl
+-rw-r--r--@  1 serhiinikolaichuk  staff   14178 Sep 30 12:23 server-S1.jsonl
+-rw-r--r--@  1 serhiinikolaichuk  staff    1604 Sep 30 12:23 server-S2-legacy.jsonl
+-rw-r--r--@  1 serhiinikolaichuk  staff    1797 Sep 30 12:23 server-S2.jsonl
+-rw-r--r--@  1 serhiinikolaichuk  staff    1149 Sep 30 12:23 sha256sums.txt
+-rw-r--r--@  1 serhiinikolaichuk  staff   56137 Sep 30 12:23 vectors.json
+== done; VM is deleted on exit
+== delete tacra-est-snp-2609301717
+exit=0
